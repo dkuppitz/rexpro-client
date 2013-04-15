@@ -53,9 +53,13 @@
     <Compile Include="Messages\Channel.cs" />
     <Compile Include="Messages\ErrorResponse.cs" />
     <Compile Include="Edge.cs" />
-    <Compile Include="Messages\ErrorResponseMetaData.cs" />
+    <Compile Include="Messages\ErrorResponseMetaData.cs">
+      <DependentUpon>ErrorResponse.cs</DependentUpon>
+    </Compile>
     <Compile Include="Messages\MessageType.cs" />
-    <Compile Include="Messages\ScriptRequestMetaData.cs" />
+    <Compile Include="Messages\ScriptRequestMetaData.cs">
+      <DependentUpon>ScriptRequest.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Messages\RexProMessage.cs" />
     <Compile Include="RexsterClient.cs" />
