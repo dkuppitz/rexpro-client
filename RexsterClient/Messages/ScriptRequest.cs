@@ -42,7 +42,7 @@ namespace Rexster.Messages
             set { this.bindings = value; }
         }
 
-        public void AddBinding(string name, object value)
+        public ScriptRequest AddBinding(string name, object value)
         {
             if (this.bindings == null)
             {
@@ -55,6 +55,8 @@ namespace Rexster.Messages
             {
                 this.bindings.Add(name, value);
             }
+
+            return this;
         }
     }
 }

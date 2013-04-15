@@ -40,6 +40,12 @@ var binding3 = new Dictionary<string, object>
 
 client.Query(script3, binding3);
 
+var script4 = new ScriptRequest("g.addVertex(['name':name1]); g.addVertex(['name':name2]); null")
+  .AddBinding("name1", "foo")
+  .AddBinding("name2", "bar");
+
+client.ExecuteScript(script4);
+
 var v1 = client.Query<Vertex<Example>>("g.V('name','v1').next()").Result;
 var v2 = client.Query<Example>("g.V('name',name).next().map()", binding2).Result;
 var count = client.Query<long>("g.V.count()").Result;

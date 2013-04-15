@@ -79,6 +79,11 @@
             return this.ExecuteScript<T>(request);
         }
 
+        public ScriptResponse ExecuteScript(ScriptRequest script)
+        {
+            return this.ExecuteScript<object>(script);
+        }
+
         public ScriptResponse<T> ExecuteScript<T>(ScriptRequest script)
         {
             return this.SendRequest<ScriptRequest, ScriptResponse<T>>(script, MessageType.ScriptRequest);
