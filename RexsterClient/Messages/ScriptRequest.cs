@@ -1,4 +1,4 @@
-namespace Rexster
+namespace Rexster.Messages
 {
     using System;
     using System.Collections.Generic;

@@ -1,4 +1,4 @@
-﻿namespace Rexster
+﻿namespace Rexster.Messages
 {
     using MsgPack.Serialization;
 

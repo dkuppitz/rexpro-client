@@ -1,4 +1,4 @@
-﻿namespace Rexster
+﻿namespace Rexster.Messages
 {
     public static class MessageType
     {

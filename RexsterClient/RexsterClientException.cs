@@ -2,6 +2,8 @@
 {
     using System;
 
+    using Rexster.Messages;
+
     public class RexsterClientException : Exception
     {
         public RexsterClientException(ErrorResponse msg)

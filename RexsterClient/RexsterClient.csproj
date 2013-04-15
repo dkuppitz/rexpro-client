@@ -50,17 +50,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Channel.cs" />
-    <Compile Include="ErrorResponse.cs" />
+    <Compile Include="Messages\Channel.cs" />
+    <Compile Include="Messages\ErrorResponse.cs" />
     <Compile Include="Edge.cs" />
-    <Compile Include="MessageType.cs" />
-    <Compile Include="MetaData.cs" />
+    <Compile Include="Messages\MessageType.cs" />
+    <Compile Include="Messages\MetaData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RexProMessage.cs" />
+    <Compile Include="Messages\RexProMessage.cs" />
     <Compile Include="RexsterClient.cs" />
     <Compile Include="RexsterClientException.cs" />
-    <Compile Include="ScriptRequest.cs" />
-    <Compile Include="ScriptResponse.cs" />
+    <Compile Include="Messages\ScriptRequest.cs" />
+    <Compile Include="Messages\ScriptResponse.cs" />
     <Compile Include="StreamExtensions.cs" />
     <Compile Include="Vertex.cs" />
   </ItemGroup>

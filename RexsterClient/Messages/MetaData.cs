@@ -1,4 +1,4 @@
-namespace Rexster
+namespace Rexster.Messages
 {
     using System;
     using MsgPack;
@@ -15,7 +15,7 @@ namespace Rexster
 
         public MetaData()
         {
-            this.channel = Rexster.Channel.MsgPack;
+            this.channel = Messages.Channel.MsgPack;
             this.isolate = true;
             this.transaction = true;
             this.graphName = "graph";

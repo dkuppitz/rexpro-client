@@ -1,7 +1,6 @@
-namespace Rexster
+namespace Rexster.Messages
 {
     using System.Collections.Generic;
-
     using MsgPack.Serialization;
 
     public class ScriptResponse<T> : ScriptResponse

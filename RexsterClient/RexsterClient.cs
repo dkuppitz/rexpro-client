@@ -5,8 +5,11 @@
     using System.IO;
     using System.Linq;
     using System.Net.Sockets;
+
     using MsgPack;
     using MsgPack.Serialization;
+    
+    using Rexster.Messages;
 
     public class RexsterClient
     {
