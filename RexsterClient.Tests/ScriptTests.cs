@@ -79,5 +79,14 @@
         {
             client.Query("g.A()");
         }
+
+        [TestMethod]
+        public void QueryNoReturn()
+        {
+            var script = InitScript("null");
+            var res = client.Query(script);
+
+            Assert.IsNotNull(res);
+        }
     }
 }

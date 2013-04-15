@@ -46,9 +46,9 @@
             get { return this.port; }
         }
 
-        public ScriptResponse<dynamic> Query(string script)
+        public ScriptResponse Query(string script)
         {
-            return this.Query<dynamic>(script, EmptyBindings);
+            return this.Query<object>(script, EmptyBindings);
         }
 
         public ScriptResponse<T> Query<T>(string script)
