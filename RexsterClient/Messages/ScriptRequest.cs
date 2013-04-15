@@ -5,7 +5,7 @@ namespace Rexster.Messages
 
     using MsgPack.Serialization;
 
-    public class ScriptRequest : RexProMessage
+    public class ScriptRequest : RexProMessage<ScriptRequestMetaData>
     {
         private static readonly byte[] EmptyByteArray = Guid.Empty.ToByteArray();
 
@@ -15,7 +15,7 @@ namespace Rexster.Messages
         {
             this.Session = EmptyByteArray;
             this.Request = Guid.NewGuid().ToByteArray();
-            this.Meta = new MetaData();
+            this.Meta = new ScriptRequestMetaData();
             this.Language = "groovy";
         }
 

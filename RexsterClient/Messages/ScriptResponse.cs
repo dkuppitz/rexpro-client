@@ -9,7 +9,7 @@ namespace Rexster.Messages
         public T Result { get; set; }
     }
 
-    public abstract class ScriptResponse : RexProMessage
+    public abstract class ScriptResponse : RexProMessage<Dictionary<string, object>> 
     {
         [MessagePackMember(4)]
         public Dictionary<string, object> Bindings { get; set; }

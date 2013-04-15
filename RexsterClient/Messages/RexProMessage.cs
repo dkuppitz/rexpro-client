@@ -9,8 +9,11 @@
 
         [MessagePackMember(1)]
         public byte[] Request { get; set; }
+    }
 
+    public abstract class RexProMessage<TMetaData> : RexProMessage
+    {
         [MessagePackMember(2)]
-        public MetaData Meta { get; set; }
+        public TMetaData Meta { get; set; }
     }
 }

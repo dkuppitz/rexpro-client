@@ -1,11 +1,9 @@
 namespace Rexster.Messages
 {
-    using System;
     using MsgPack;
 
-    public class MetaData : IPackable, IUnpackable
+    public class ScriptRequestMetaData : IPackable
     {
-        private int flag;
         private int channel;
         private bool inSession;
         private bool isolate;
@@ -13,7 +11,7 @@ namespace Rexster.Messages
         private string graphName;
         private string graphObjName;
 
-        public MetaData()
+        public ScriptRequestMetaData()
         {
             this.channel = Messages.Channel.MsgPack;
             this.isolate = true;
@@ -73,26 +71,6 @@ namespace Rexster.Messages
             packer.Pack(this.graphName);
             packer.PackString("graphObjName");
             packer.Pack(this.graphObjName);
-        }
-
-        public void UnpackFromMessage(Unpacker unpacker)
-        {
-            if (unpacker.IsMapHeader)
-            {
-                string key;
-                for (long i = 0, j = unpacker.ItemsCount; i < j && unpacker.ReadString(out key); i++)
-                {
-                    switch (key)
-                    {
-                        case "flag":
-                            unpacker.ReadInt32(out this.flag);
-                            break;
-
-                        default:
-                            throw new Exception(string.Concat("Unexpected key: ", key));
-                    }
-                }
-            }
         }
     }
 }
