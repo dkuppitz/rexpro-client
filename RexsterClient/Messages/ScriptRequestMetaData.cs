@@ -1,10 +1,11 @@
 namespace Rexster.Messages
 {
+    using System;
     using MsgPack;
 
     public class ScriptRequestMetaData : IPackable
     {
-        private int channel;
+        private readonly int channel;
         private bool inSession;
         private bool isolate;
         private bool transaction;
@@ -23,7 +24,13 @@ namespace Rexster.Messages
         public int Channel
         {
             get { return this.channel; }
-            set { this.channel = value; }
+            set
+            {
+                if (Messages.Channel.MsgPack != value)
+                {
+                    throw new NotSupportedException();
+                }
+            }
         }
 
         public bool InSession
