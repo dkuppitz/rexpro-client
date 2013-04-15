@@ -74,6 +74,18 @@
             Assert.IsTrue(items.Any(item => item.Name == "V3"));
         }
 
+        [TestMethod]
+        public void QueryEdge()
+        {
+            var script = InitScript("g.addEdge(null,g.v(0),g.v(1),'knows')");
+            var edge = client.Query<Edge>(script).Result;
+
+            Assert.IsNotNull(edge);
+            Assert.AreEqual("0", edge.OutVertex);
+            Assert.AreEqual("1", edge.InVertex);
+            Assert.AreEqual("knows", edge.Label);
+        }
+
         [TestMethod, ExpectedException(typeof(RexsterClientException))]
         public void QueryError()
         {

@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Channel.cs" />
     <Compile Include="ErrorResponse.cs" />
+    <Compile Include="Edge.cs" />
     <Compile Include="MessageType.cs" />
     <Compile Include="MetaData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
