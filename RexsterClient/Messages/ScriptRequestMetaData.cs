@@ -1,6 +1,5 @@
 namespace Rexster.Messages
 {
-    using System;
     using MsgPack;
 
     public class ScriptRequestMetaData : IPackable
