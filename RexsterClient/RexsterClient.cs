@@ -131,11 +131,12 @@
                         throw new RexsterClientException(msg);
                     }
 
-                    if (responseMessageType != ExpectedResponseMessageType[requestMessageType])
+                    var expectedResponseMessageType = ExpectedResponseMessageType[requestMessageType];
+                    if (responseMessageType != expectedResponseMessageType)
                     {
                         var msg = string.Format(CultureInfo.InvariantCulture,
                                                 "Unexpected message type '{0}', expected '{1}'.", requestMessageType,
-                                                MessageType.MsgPackScriptResponse);
+                                                expectedResponseMessageType);
                         throw new RexsterClientSerializationException(msg);
                     }
 
