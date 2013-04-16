@@ -7,6 +7,11 @@ namespace Rexster.Messages
     {
         [MessagePackMember(3)]
         public T Result { get; set; }
+
+        public static implicit operator T(ScriptResponse<T> response)
+        {
+            return response.Result;
+        }
     }
 
     public abstract class ScriptResponse : RexProMessage<Dictionary<string, object>> 

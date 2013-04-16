@@ -58,6 +58,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ConstructorTests.cs" />
+    <Compile Include="ResultCastTests.cs" />
     <Compile Include="SessionTests.cs" />
     <Compile Include="ScriptTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
