@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net.Sockets;
@@ -15,6 +16,12 @@
     {
         private const byte ProtocolVersion = 0;
         private const int DefaultPort = 8184;
+
+        private static readonly IDictionary<byte, byte> ExpectedResponseMessageType = new Dictionary<byte, byte>
+        {
+            { MessageType.SessionRequest, MessageType.SessionResponse },
+            { MessageType.ScriptRequest, MessageType.MsgPackScriptResponse }
+        };
 
         private static readonly MessagePackSerializer<ErrorResponse> ErrorMessageSerializer =
             MessagePackSerializer.Create<ErrorResponse>();
@@ -89,7 +96,7 @@
             return this.SendRequest<ScriptRequest, ScriptResponse<T>>(script, MessageType.ScriptRequest);
         }
 
-        private TResponse SendRequest<TRequest, TResponse>(TRequest message, byte messageType)
+        private TResponse SendRequest<TRequest, TResponse>(TRequest message, byte requestMessageType)
             where TRequest : RexProMessage
             where TResponse : RexProMessage
         {
@@ -99,26 +106,37 @@
             using (var stream = tcpClient.GetStream())
             using (var packer = Packer.Create(stream, false))
             {
-                packer.Pack(ProtocolVersion);
-                packer.Pack(messageType);
+                packer.Pack(ProtocolVersion).Pack(requestMessageType);
 
                 PackMessage(stream, message);
 
                 using (var unpacker = Unpacker.Create(stream, false))
                 {
-                    byte protocolVersion;
+                    byte protocolVersion, responseMessageType;
 
-                    unpacker.ReadByte(out protocolVersion);
-                    unpacker.ReadByte(out messageType);
+                    if (
+                        !(unpacker.ReadByte(out protocolVersion) && protocolVersion == 0 &&
+                          unpacker.ReadByte(out responseMessageType)))
+                    {
+                        throw new RexsterClientSerializationException("Unexpected message header.");
+                    }
 
                     // skip message length bytes
                     // don't use unpacker as it throws an exception for some lengths (don't know why)
                     stream.Skip(4);
 
-                    if (messageType == MessageType.Error)
+                    if (responseMessageType == MessageType.Error)
                     {
                         var msg = ErrorMessageSerializer.Unpack(stream);
                         throw new RexsterClientException(msg);
+                    }
+
+                    if (responseMessageType != ExpectedResponseMessageType[requestMessageType])
+                    {
+                        var msg = string.Format(CultureInfo.InvariantCulture,
+                                                "Unexpected message type '{0}', expected '{1}'.", requestMessageType,
+                                                MessageType.MsgPackScriptResponse);
+                        throw new RexsterClientSerializationException(msg);
                     }
 
                     return serializer.Unpack(stream);
@@ -149,7 +167,7 @@
         public SessionResponse OpenSession()
         {
             var request = new SessionRequest();
-            return SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
+            return this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
         }
 
         public SessionResponse KillSession(Guid session)
@@ -160,7 +178,7 @@
         public SessionResponse KillSession(byte[] session)
         {
             var request = new SessionRequest(session, true);
-            return SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
+            return this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
         }
     }
 }

@@ -5,7 +5,6 @@ namespace Rexster.Messages
 
     public class ScriptRequestMetaData : IPackable
     {
-        private readonly int channel;
         private bool inSession;
         private bool isolate;
         private bool transaction;
@@ -14,28 +13,10 @@ namespace Rexster.Messages
 
         public ScriptRequestMetaData()
         {
-            this.channel = Messages.Channel.MsgPack;
             this.isolate = true;
             this.transaction = true;
             this.graphName = "graph";
             this.graphObjName = "g";
-        }
-
-        public int Channel
-        {
-            get { return this.channel; }
-            set
-            {
-                // why not simply a read-only property?
-                // -> MsgPack (de)serialization needs the setter
-                //
-                // * channel in request messages must always be 2 (MsgPack)
-                // * channel in response messages will always be 2 (MsgPack)
-                if (Messages.Channel.MsgPack != value)
-                {
-                    throw new NotSupportedException();
-                }
-            }
         }
 
         public bool InSession
@@ -70,22 +51,22 @@ namespace Rexster.Messages
 
         public void PackToMessage(Packer packer, PackingOptions options)
         {
-            packer.PackMapHeader(this.inSession ? 4 : 6);
-            packer.PackString("channel");
-            packer.Pack(this.channel);
-            packer.PackString("inSession");
-            packer.Pack(this.inSession);
-            packer.PackString("isokate");
-            packer.Pack(this.isolate);
-            packer.PackString("transaction");
-            packer.Pack(this.transaction);
+            packer.PackMapHeader(this.inSession ? 4 : 6)
+                  .PackString("channel")
+                  .Pack(Channel.MsgPack)
+                  .PackString("inSession")
+                  .Pack(this.inSession)
+                  .PackString("isokate")
+                  .Pack(this.isolate)
+                  .PackString("transaction")
+                  .Pack(this.transaction);
 
             if (!this.inSession)
             {
-                packer.PackString("graphName");
-                packer.Pack(this.graphName);
-                packer.PackString("graphObjName");
-                packer.Pack(this.graphObjName);
+                packer.PackString("graphName")
+                      .PackString(this.graphName)
+                      .PackString("graphObjName")
+                      .PackString(this.graphObjName);
             }
         }
     }

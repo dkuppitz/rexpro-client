@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RexsterClientSerializationException.cs" />
     <Compile Include="Messages\Channel.cs" />
     <Compile Include="Messages\ErrorResponse.cs" />
     <Compile Include="Edge.cs" />
