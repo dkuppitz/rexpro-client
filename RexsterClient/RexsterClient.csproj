@@ -56,9 +56,14 @@
     <Compile Include="Messages\ErrorResponseMetaData.cs">
       <DependentUpon>ErrorResponse.cs</DependentUpon>
     </Compile>
+    <Compile Include="Messages\SessionResponse.cs" />
     <Compile Include="Messages\MessageType.cs" />
     <Compile Include="Messages\ScriptRequestMetaData.cs">
       <DependentUpon>ScriptRequest.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Messages\SessionRequest.cs" />
+    <Compile Include="Messages\SessionRequestMetaData.cs">
+      <DependentUpon>SessionRequest.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Messages\RexProMessage.cs" />

@@ -65,7 +65,7 @@ namespace Rexster.Messages
 
         public void PackToMessage(Packer packer, PackingOptions options)
         {
-            packer.PackMapHeader(6);
+            packer.PackMapHeader(this.inSession ? 4 : 6);
             packer.PackString("channel");
             packer.Pack(this.channel);
             packer.PackString("inSession");
@@ -74,10 +74,14 @@ namespace Rexster.Messages
             packer.Pack(this.isolate);
             packer.PackString("transaction");
             packer.Pack(this.transaction);
-            packer.PackString("graphName");
-            packer.Pack(this.graphName);
-            packer.PackString("graphObjName");
-            packer.Pack(this.graphObjName);
+
+            if (!this.inSession)
+            {
+                packer.PackString("graphName");
+                packer.Pack(this.graphName);
+                packer.PackString("graphObjName");
+                packer.Pack(this.graphObjName);
+            }
         }
     }
 }
