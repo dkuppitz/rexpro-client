@@ -146,14 +146,9 @@
             stream.Write(messageBytes, 0, length);
         }
 
-        public SessionResponse OpenSession(Guid session)
+        public SessionResponse OpenSession()
         {
-            return this.OpenSession(session.ToByteArray());
-        }
-
-        public SessionResponse OpenSession(byte[] session)
-        {
-            var request = new SessionRequest(session);
+            var request = new SessionRequest();
             return SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
         }
 

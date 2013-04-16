@@ -13,7 +13,7 @@
             this.Meta = new SessionRequestMetaData();
         }
 
-        public SessionRequest(byte[] session, bool kill = false) : this()
+        public SessionRequest(byte[] session = null, bool kill = false) : this()
         {
             this.Session = session;
             this.Meta.KillSession = kill;

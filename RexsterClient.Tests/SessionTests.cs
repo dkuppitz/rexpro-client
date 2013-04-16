@@ -4,6 +4,7 @@
     using System.Linq;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+
     using Rexster.Messages;
 
     [TestClass]
@@ -20,7 +21,7 @@
         [TestMethod]
         public void OpenCloseSession()
         {
-            var response = client.OpenSession(Guid.NewGuid());
+            var response = client.OpenSession();
             Assert.IsNotNull(response);
             Assert.IsNotNull(response.Languages);
             Assert.IsTrue(response.Languages.Contains("groovy"));
@@ -32,24 +33,26 @@
         [TestMethod]
         public void UseSession()
         {
-            var response = client.OpenSession(Guid.NewGuid());
+            var response = client.OpenSession();
+            var r = Guid.NewGuid().ToByteArray();
             var session = response.Session;
-            var request = new ScriptRequest("foo = 'bar';")
+
+            var request = new ScriptRequest("v = g.addVertex(['name':'foo'])")
             {
                 Session = session,
                 Meta = { InSession = true, Isolate = false }
             };
 
-            var expected = client.ExecuteScript<string>(request).Result;
+            var expected = client.ExecuteScript<Vertex<TestVertex>>(request).Result;
 
-            request = new ScriptRequest("foo;")
+            request = new ScriptRequest("v")
             {
                 Session = session,
                 Meta = { InSession = true, Isolate = false }
             };
 
             // TODO: Test does not succeed. Go and learn something about Rexsters sessions!
-            var actual = client.ExecuteScript<string>(request).Result;
+            var actual = client.ExecuteScript<Vertex<TestVertex>>(request).Result;
 
             client.KillSession(session);
 
