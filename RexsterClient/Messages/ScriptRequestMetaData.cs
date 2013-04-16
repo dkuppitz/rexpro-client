@@ -26,6 +26,11 @@ namespace Rexster.Messages
             get { return this.channel; }
             set
             {
+                // why not simply a read-only property?
+                // -> MsgPack (de)serialization needs the setter
+                //
+                // * channel in request messages must always be 2 (MsgPack)
+                // * channel in response messages will always be 2 (MsgPack)
                 if (Messages.Channel.MsgPack != value)
                 {
                     throw new NotSupportedException();
