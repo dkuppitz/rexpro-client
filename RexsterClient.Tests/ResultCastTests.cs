@@ -1,6 +1,7 @@
 ﻿namespace Rexster.Tests
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Rexster.Tests.Properties;
 
     [TestClass]
     public class ResultCastTests
@@ -10,7 +11,7 @@
         [TestInitialize]
         public void Initialize()
         {
-            client = new RexsterClient("192.168.2.105");
+            client = new RexsterClient(Settings.Default.RexsterHost, Settings.Default.RexsterPort);
         }
 
         [TestMethod]

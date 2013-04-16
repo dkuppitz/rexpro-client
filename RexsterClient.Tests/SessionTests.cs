@@ -1,11 +1,11 @@
 ﻿namespace Rexster.Tests
 {
-    using System;
     using System.Linq;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     using Rexster.Messages;
+    using Rexster.Tests.Properties;
 
     [TestClass]
     public class SessionTests
@@ -15,7 +15,7 @@
         [TestInitialize]
         public void Initialize()
         {
-            client = new RexsterClient("192.168.2.105");
+            client = new RexsterClient(Settings.Default.RexsterHost, Settings.Default.RexsterPort);
         }
 
         [TestMethod]
@@ -34,7 +34,6 @@
         public void UseSession()
         {
             var response = client.OpenSession();
-            var r = Guid.NewGuid().ToByteArray();
             var session = response.Session;
 
             var request = new ScriptRequest("v = g.addVertex(['name':'foo'])")

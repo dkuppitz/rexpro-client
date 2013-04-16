@@ -4,6 +4,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     using Rexster.Messages;
+    using Rexster.Tests.Properties;
 
     [TestClass]
     public class ScriptTests
@@ -13,7 +14,7 @@
         [TestInitialize]
         public void Initialize()
         {
-            client = new RexsterClient("192.168.2.105");
+            client = new RexsterClient(Settings.Default.RexsterHost, Settings.Default.RexsterPort);
         }
 
         private static string InitScript(string script)
