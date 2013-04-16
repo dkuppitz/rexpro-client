@@ -3,6 +3,8 @@
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    using Rexster.Messages;
+
     [TestClass]
     public class ScriptTests
     {
@@ -99,6 +101,15 @@
             var res = client.Query(script);
 
             Assert.IsNotNull(res);
+        }
+
+        [TestMethod]
+        public void ExecuteScriptRequest()
+        {
+            var script = new ScriptRequest(InitScript("g.V.count()"));
+            var count = client.ExecuteScript<long>(script).Result;
+
+            Assert.AreEqual(3, count);
         }
     }
 }
