@@ -13,7 +13,7 @@
         {
         }
 
-        public SessionRequest(GraphSettings settings = null, byte[] session = null, bool killSession = false)
+        public SessionRequest(GraphSettings settings = null, RexProSession session = null, bool killSession = false)
         {
             this.channel = Messages.Channel.MsgPack;
             this.Session = session;

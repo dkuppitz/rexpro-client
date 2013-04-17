@@ -55,7 +55,7 @@ namespace Rexster.Messages
                   .Pack(Channel.MsgPack)
                   .PackString("inSession")
                   .Pack(this.inSession)
-                  .PackString("isokate")
+                  .PackString("isolate")
                   .Pack(this.isolate)
                   .PackString("transaction")
                   .Pack(this.transaction);

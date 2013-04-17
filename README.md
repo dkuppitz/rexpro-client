@@ -52,8 +52,6 @@ var example = (Example)client.Query<Vertex<Example>>("g.addVertex(['name':name])
 
 ### Queries with sessions
 
-The following example should work in theory. In practice there's still a bug in session management, that will hopefully be fixed soon.
-
 ```C#
 using (var session = client.OpenSession())
 {

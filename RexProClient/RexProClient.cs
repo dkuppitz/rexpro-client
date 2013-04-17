@@ -1,9 +1,12 @@
 ﻿namespace Rexster
 {
+    using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
     using System.Net.Sockets;
+    using System.Threading;
 
     using MsgPack;
     using MsgPack.Serialization;
@@ -23,6 +26,9 @@
 
         private static readonly MessagePackSerializer<ErrorResponse> ErrorMessageSerializer =
             MessagePackSerializer.Create<ErrorResponse>();
+
+        private static readonly ConcurrentDictionary<Guid, NetworkStream> SessionStreams =
+            new ConcurrentDictionary<Guid, NetworkStream>();
 
         private readonly string host;
         private readonly int port;
@@ -80,10 +86,22 @@
             where TRequest : RexProMessage
             where TResponse : RexProMessage
         {
+            TResponse result;
+
             var serializer = MessagePackSerializer.Create<TResponse>();
 
-            using (var tcpClient = new TcpClient(this.host, this.port))
-            using (var stream = tcpClient.GetStream())
+            Stream stream;
+
+            if (message.Session != null)
+            {
+                var guid = new Guid(message.Session);
+                stream = SessionStreams.GetOrAdd(guid, _ => new TcpClient(this.host, this.port).GetStream());
+            }
+            else
+            {
+                stream = new TcpClient(this.host, this.port).GetStream();
+            }
+
             using (var packer = Packer.Create(stream, false))
             {
                 packer.Pack(ProtocolVersion).Pack(requestMessageType);
@@ -120,9 +138,17 @@
                         throw new RexProClientSerializationException(msg);
                     }
 
-                    return serializer.Unpack(stream);
+                    result = serializer.Unpack(stream);
                 }
             }
+
+            if (message.Session == null)
+            {
+                stream.Close();
+                stream.Dispose();
+            }
+
+            return result;
         }
 
         private static void PackMessage<T>(Stream stream, T message)
@@ -149,7 +175,25 @@
         {
             var request = new SessionRequest(settings);
             var response = this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
-            return new RexProSession(this, response.Session);
+            var session = new RexProSession(this, response.Session);
+            var sessionGuid = new Guid(response.Session);
+
+            SessionStreams.GetOrAdd(sessionGuid, _ => new TcpClient(this.host, this.port).GetStream());
+            session.Kill += (sender, args) =>
+            {
+                while (SessionStreams.ContainsKey(sessionGuid))
+                {
+                    NetworkStream stream;
+                    if (SessionStreams.TryRemove(sessionGuid, out stream))
+                    {
+                        stream.Close();
+                        stream.Dispose();
+                    }
+                    else Thread.SpinWait(10);
+                }
+            };
+
+            return session;
         }
 
         public void KillSession(RexProSession session)

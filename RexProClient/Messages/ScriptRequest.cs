@@ -7,13 +7,10 @@ namespace Rexster.Messages
 
     public class ScriptRequest : RexProMessage<ScriptRequestMetaData>
     {
-        private static readonly byte[] EmptyByteArray = Guid.Empty.ToByteArray();
-
         private Dictionary<string, object> bindings;
 
         public ScriptRequest()
         {
-            this.Session = EmptyByteArray;
             this.Request = Guid.NewGuid().ToByteArray();
             this.Meta = new ScriptRequestMetaData();
             this.Language = "groovy";

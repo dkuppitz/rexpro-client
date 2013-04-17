@@ -46,9 +46,10 @@
                 var bindings = new Dictionary<string, object> { { "name", "foo" } };
                 var request = new ScriptRequest("v = g.addVertex(['name':name])", bindings);
                 var expected = client.ExecuteScript<Vertex<TestVertex>>(request, session, false).Result;
-                var actual = client.Query<Vertex<TestVertex>>("v", session: session, isolate: false);
+                var actual = client.Query<Vertex<TestVertex>>("v", session: session, isolate: false).Result;
 
-                Assert.AreEqual(expected, actual);
+                Assert.AreEqual(expected.Id, actual.Id);
+                Assert.AreEqual(expected.Data.Name, actual.Data.Name);
             }
         }
     }
