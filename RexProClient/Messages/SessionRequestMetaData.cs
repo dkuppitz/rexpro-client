@@ -8,10 +8,20 @@
         private string graphObjName;
         private bool killSession;
 
-        public SessionRequestMetaData()
+// ReSharper disable RedundantArgumentDefaultValue
+        public SessionRequestMetaData() : this(null, false)
+// ReSharper restore RedundantArgumentDefaultValue
         {
-            this.graphName = "graph";
-            this.graphObjName = "g";
+
+        }
+
+        public SessionRequestMetaData(GraphSettings settings = null, bool killSession = false)
+        {
+            settings = settings ?? GraphSettings.Default;
+
+            this.graphName = settings.GraphName;
+            this.graphObjName = settings.GraphObjectName;
+            this.killSession = killSession;
         }
 
         public string GraphName

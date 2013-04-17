@@ -71,6 +71,8 @@
         public ScriptResponse<T> ExecuteScript<T>(ScriptRequest script, RexProSession session = null, bool isolate = true)
         {
             script.Meta.Isolate = isolate;
+            script.Meta.InSession = session != null;
+            script.Session = session;
             return this.SendRequest<ScriptRequest, ScriptResponse<T>>(script, MessageType.ScriptRequest);
         }
 
@@ -113,8 +115,8 @@
                     if (responseMessageType != expectedResponseMessageType)
                     {
                         var msg = string.Format(CultureInfo.InvariantCulture,
-                                                "Unexpected message type '{0}', expected '{1}'.", requestMessageType,
-                                                expectedResponseMessageType);
+                                                "Unexpected message type '{0}', expected '{1}'.",
+                                                requestMessageType, expectedResponseMessageType);
                         throw new RexProClientSerializationException(msg);
                     }
 
@@ -143,16 +145,16 @@
             stream.Write(messageBytes, 0, length);
         }
 
-        public RexProSession OpenSession(/*RexProConfiguration config*/)
+        public RexProSession OpenSession(GraphSettings settings = null)
         {
-            var request = new SessionRequest();
+            var request = new SessionRequest(settings);
             var response = this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
             return new RexProSession(this, response.Session);
         }
 
         public void KillSession(RexProSession session)
         {
-            var request = new SessionRequest(session, true);
+            var request = new SessionRequest(session: session, killSession: true);
             this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
         }
     }
