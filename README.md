@@ -1,7 +1,7 @@
 rexpro-client
 ==============
 
-RexPro Client Library for .NET
+RexPro Client for .NET
 
 ## getting started
 
