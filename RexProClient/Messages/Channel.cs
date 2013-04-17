@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines the different serialization channels supported by RexPro Servers.
     /// </summary>
-    public static class Channel
+    internal static class Channel
     {
         /// <summary>
         /// Console serialization channel.

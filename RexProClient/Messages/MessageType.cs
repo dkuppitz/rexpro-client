@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines the different message types accepted and sent by RexPro Servers.
     /// </summary>
-    public static class MessageType
+    internal static class MessageType
     {
         /// <summary>
         /// Used for responses from the RexPro Server indicating a problem has occurred.
