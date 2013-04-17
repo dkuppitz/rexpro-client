@@ -1,5 +1,6 @@
 ﻿namespace Rexster.Tests
 {
+    using System.Collections.Generic;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     using Rexster.Messages;
@@ -26,13 +27,26 @@
         }
 
         [TestMethod]
-        public void UseSession()
+        public void UseSessionWithoutGraph()
         {
             using (var session = client.OpenSession())
             {
-                var request1 = new ScriptRequest("v = g.addVertex(['name':'foo'])");
-                var expected = client.ExecuteScript<Vertex<TestVertex>>(request1, session, false).Result;
-                var actual = client.Query<Vertex<TestVertex>>("v", session: session, isolate: false).Result;
+                int expected = client.Query<int>("number = 1 + 2", session: session, isolate: false);
+                int actual = client.Query<int>("number", session: session, isolate: false);
+
+                Assert.AreEqual(expected, actual);
+            }
+        }
+
+        [TestMethod]
+        public void UseSessionWithGraph()
+        {
+            using (var session = client.OpenSession())
+            {
+                var bindings = new Dictionary<string, object> { { "name", "foo" } };
+                var request = new ScriptRequest("v = g.addVertex(['name':name])", bindings);
+                var expected = client.ExecuteScript<Vertex<TestVertex>>(request, session, false).Result;
+                var actual = client.Query<Vertex<TestVertex>>("v", session: session, isolate: false);
 
                 Assert.AreEqual(expected, actual);
             }
