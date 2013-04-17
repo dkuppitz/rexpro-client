@@ -18,35 +18,46 @@ public class Example
 
 That's it. Now fire up some queries.
 
+### Queries without return value (null)
+
 ```C#
 var client = new RexProClient();
 
-var script1 = "g.addVertex(['name':name]); null";
-var binding1 = new Dictionary<string, object> {{ "name", "v1" }};
+client.Query("g.addVertex(['name':'foo']); null");
 
-client.Query(script1, binding1);
+// same query with parameter binding
+var bindings = new Dictionary<string, object> {{ "name", "foo" }};
+client.Query("g.addVertex(['name':name]); null", bindings);
+```
 
-var script2 = "g.addVertex(['name':name]); null";
-var binding2 = new Dictionary<string, object> {{ "name", "v2" }};
+### Queries with scalar return value
 
-client.Query(script2, binding2);
+```C#
+var result = client.Query<long>("g.V.count()").Result;
 
-var script3 = "g.addVertex(['name':name1]); g.addVertex(['name':name2]); null";
-var binding3 = new Dictionary<string, object>
+// or make use of automatic type casting
+long count = client.Query<long>("g.V.count()");
+```
+
+### Queries with complex return value
+
+```C#
+// not really different from scalar return values
+var bindings = new Dictionary<string, object> {{ "name", "foo" }};
+var result = client.Query<Vertex<Example>>("g.addVertex(['name':name])", bindings).Result;
+
+// again you can use automatic type casting (this time an explicit cast)
+var example = (Example)client.Query<Vertex<Example>>("g.addVertex(['name':name]).map()", bindings);
+```
+
+### Queries with sessions
+
+The following example should work in theory. In practice there's still a bug in session management, that will hopefully be fixed soon.
+
+```C#
+using (var session = client.OpenSession())
 {
-    { "name1", "v3" },
-    { "name2", "v4" }
-};
-
-client.Query(script3, binding3);
-
-var script4 = new ScriptRequest("g.addVertex(['name':name1]); g.addVertex(['name':name2]); null")
-  .AddBinding("name1", "foo")
-  .AddBinding("name2", "bar");
-
-client.ExecuteScript(script4);
-
-var v1 = client.Query<Vertex<Example>>("g.V('name','v1').next()").Result;
-var v2 = client.Query<Example>("g.V('name',name).next().map()", binding2).Result;
-var count = client.Query<long>("g.V.count()").Result;
+    client.Query("number = 1 + 2; null", session);
+    var result = client.Query<int>("number", session);
+}
 ```
