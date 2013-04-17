@@ -22,12 +22,12 @@ That's it. Now fire up some queries.
 var client = new RexProClient();
 
 var script1 = "g.addVertex(['name':name]); null";
-var binding1 = new Tuple<string, object>("name", "v1");
+var binding1 = new Dictionary<string, object> {{ "name", "v1" }};
 
 client.Query(script1, binding1);
 
 var script2 = "g.addVertex(['name':name]); null";
-var binding2 = new KeyValuePair<string, object>("name", "v2");
+var binding2 = new Dictionary<string, object> {{ "name", "v2" }};
 
 client.Query(script2, binding2);
 

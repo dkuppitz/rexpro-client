@@ -1,10 +1,8 @@
 ﻿namespace Rexster
 {
-    using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
-    using System.Linq;
     using System.Net.Sockets;
 
     using MsgPack;
@@ -25,8 +23,6 @@
 
         private static readonly MessagePackSerializer<ErrorResponse> ErrorMessageSerializer =
             MessagePackSerializer.Create<ErrorResponse>();
-
-        private static readonly Dictionary<string, object> EmptyBindings = new Dictionary<string, object>();
 
         private readonly string host;
         private readonly int port;
@@ -56,43 +52,25 @@
             get { return this.port; }
         }
 
-        public ScriptResponse Query(string script)
+        public ScriptResponse Query(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool isolate = true)
         {
-            return this.Query<object>(script, EmptyBindings);
+            return this.Query<object>(script, bindings, session, isolate);
         }
 
-        public ScriptResponse<T> Query<T>(string script)
-        {
-            return this.Query<T>(script, EmptyBindings);
-        }
-
-// ReSharper disable MethodOverloadWithOptionalParameter
-
-        public ScriptResponse<T> Query<T>(string script, params Tuple<string, object>[] bindings)
-        {
-            return Query<T>(script, bindings.ToDictionary(_ => _.Item1, _ => _.Item2));
-        }
-
-        public ScriptResponse<T> Query<T>(string script, params KeyValuePair<string, object>[] bindings)
-        {
-            return Query<T>(script, bindings.ToDictionary(_ => _.Key, _ => _.Value));
-        }
-
-// ReSharper restore MethodOverloadWithOptionalParameter
-
-        public ScriptResponse<T> Query<T>(string script, Dictionary<string, object> bindings)
+        public ScriptResponse<T> Query<T>(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool isolate = true)
         {
             var request = new ScriptRequest(script, bindings);
-            return this.ExecuteScript<T>(request);
+            return this.ExecuteScript<T>(request, session, isolate);
         }
 
-        public ScriptResponse ExecuteScript(ScriptRequest script)
+        public ScriptResponse ExecuteScript(ScriptRequest script, RexProSession session = null, bool isolate = true)
         {
-            return this.ExecuteScript<object>(script);
+            return this.ExecuteScript<object>(script, session, isolate);
         }
 
-        public ScriptResponse<T> ExecuteScript<T>(ScriptRequest script)
+        public ScriptResponse<T> ExecuteScript<T>(ScriptRequest script, RexProSession session = null, bool isolate = true)
         {
+            script.Meta.Isolate = isolate;
             return this.SendRequest<ScriptRequest, ScriptResponse<T>>(script, MessageType.ScriptRequest);
         }
 
@@ -165,21 +143,17 @@
             stream.Write(messageBytes, 0, length);
         }
 
-        public SessionResponse OpenSession()
+        public RexProSession OpenSession(/*RexProConfiguration config*/)
         {
             var request = new SessionRequest();
-            return this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
+            var response = this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
+            return new RexProSession(this, response.Session);
         }
 
-        public SessionResponse KillSession(Guid session)
-        {
-            return this.KillSession(session.ToByteArray());
-        }
-
-        public SessionResponse KillSession(byte[] session)
+        public void KillSession(RexProSession session)
         {
             var request = new SessionRequest(session, true);
-            return this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
+            this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
         }
     }
 }

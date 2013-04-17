@@ -67,6 +67,7 @@
     <Compile Include="RexProClientException.cs" />
     <Compile Include="Messages\ScriptRequest.cs" />
     <Compile Include="Messages\ScriptResponse.cs" />
+    <Compile Include="RexProSession.cs" />
     <Compile Include="StreamExtensions.cs" />
     <Compile Include="Vertex.cs" />
   </ItemGroup>
