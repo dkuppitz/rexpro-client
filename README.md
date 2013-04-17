@@ -1,7 +1,7 @@
-rexster-client
+rexpro-client
 ==============
 
-Rexster Client Library for .NET
+RexPro Client Library for .NET
 
 ## getting started
 
@@ -19,7 +19,7 @@ public class Example
 That's it. Now fire up some queries.
 
 ```C#
-var client = new RexsterClient();
+var client = new RexProClient();
 
 var script1 = "g.addVertex(['name':name]); null";
 var binding1 = new Tuple<string, object>("name", "v1");
