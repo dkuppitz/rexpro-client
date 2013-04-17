@@ -2,10 +2,10 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Rexster.Tests.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="RexsterHost" Type="System.String" Scope="Application">
+    <Setting Name="RexProHost" Type="System.String" Scope="Application">
       <Value Profile="(Default)">192.168.2.105</Value>
     </Setting>
-    <Setting Name="RexsterPort" Type="System.Int32" Scope="Application">
+    <Setting Name="RexProPort" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">8184</Value>
     </Setting>
   </Settings>

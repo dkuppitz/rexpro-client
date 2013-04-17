@@ -9,12 +9,12 @@
     [TestClass]
     public class ScriptTests
     {
-        private RexsterClient client;
+        private RexProClient client;
 
         [TestInitialize]
         public void Initialize()
         {
-            client = new RexsterClient(Settings.Default.RexsterHost, Settings.Default.RexsterPort);
+            client = new RexProClient(Settings.Default.RexProHost, Settings.Default.RexProPort);
         }
 
         private static string InitScript(string script)
@@ -89,7 +89,7 @@
             Assert.AreEqual("knows", edge.Label);
         }
 
-        [TestMethod, ExpectedException(typeof(RexsterClientException))]
+        [TestMethod, ExpectedException(typeof(RexProClientException))]
         public void QueryError()
         {
             client.Query("g.A()");

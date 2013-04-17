@@ -26,18 +26,18 @@ namespace Rexster.Tests.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("192.168.2.105")]
-        public string RexsterHost {
+        public string RexProHost {
             get {
-                return ((string)(this["RexsterHost"]));
+                return ((string)(this["RexProHost"]));
             }
         }
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("8184")]
-        public int RexsterPort {
+        public int RexProPort {
             get {
-                return ((int)(this["RexsterPort"]));
+                return ((int)(this["RexProPort"]));
             }
         }
     }

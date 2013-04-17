@@ -8,7 +8,7 @@
         [TestMethod]
         public void ConstructorNoParams()
         {
-            var client = new RexsterClient();
+            var client = new RexProClient();
             Assert.AreEqual("localhost", client.Host);
             Assert.AreEqual(8184, client.Port);
         }
@@ -17,7 +17,7 @@
         public void ConstructorWithHost()
         {
             const string host = "127.0.0.1";
-            var client = new RexsterClient(host);
+            var client = new RexProClient(host);
             Assert.AreEqual(host, client.Host);
             Assert.AreEqual(8184, client.Port);
         }
@@ -27,7 +27,7 @@
         {
             const string host = "127.0.0.1";
             const int port = 8185;
-            var client = new RexsterClient(host, port);
+            var client = new RexProClient(host, port);
             Assert.AreEqual(host, client.Host);
             Assert.AreEqual(port, client.Port);
         }

@@ -8,7 +8,7 @@
         /// <summary>
         /// Console serialization channel.
         /// </summary>
-        /// <remarks>Do not use. Only MsgPack is supported by RexsterClient.</remarks>
+        /// <remarks>Do not use. Only MsgPack is supported by RexProClient.</remarks>
         public const int Console = 1;
 
         /// <summary>
@@ -19,7 +19,7 @@
         /// <summary>
         /// GraphSON serialization channel.
         /// </summary>
-        /// <remarks>Do not use. Only MsgPack is supported by RexsterClient.</remarks>
+        /// <remarks>Do not use. Only MsgPack is supported by RexProClient.</remarks>
         public const int Graphson = 3;
     }
 }

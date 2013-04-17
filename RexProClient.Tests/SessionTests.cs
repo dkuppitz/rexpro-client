@@ -10,12 +10,12 @@
     [TestClass]
     public class SessionTests
     {
-        private RexsterClient client;
+        private RexProClient client;
 
         [TestInitialize]
         public void Initialize()
         {
-            client = new RexsterClient(Settings.Default.RexsterHost, Settings.Default.RexsterPort);
+            client = new RexProClient(Settings.Default.RexProHost, Settings.Default.RexProPort);
         }
 
         [TestMethod]

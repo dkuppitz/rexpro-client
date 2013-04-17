@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RexsterClient", "RexsterClient\RexsterClient.csproj", "{9CCE3553-758A-493C-BB8F-157648E05DF4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RexProClient", "RexProClient\RexProClient.csproj", "{9CCE3553-758A-493C-BB8F-157648E05DF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RexsterClient.Tests", "RexsterClient.Tests\RexsterClient.Tests.csproj", "{97F15C87-36DD-4AD4-B95E-41395A21957A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RexProClient.Tests", "RexProClient.Tests\RexProClient.Tests.csproj", "{97F15C87-36DD-4AD4-B95E-41395A21957A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{335EFB25-5551-4BC7-BBFF-D1E534238275}"
 	ProjectSection(SolutionItems) = preProject
