@@ -59,3 +59,7 @@ using (var session = client.OpenSession())
     var result = client.Query<int>("number", session);
 }
 ```
+
+## TODO
+
+Transactions
