@@ -72,26 +72,28 @@
             set { this.settings = value ?? GraphSettings.Default; }
         }
 
-        public ScriptResponse Query(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool isolate = true)
-        {
-            return this.Query<object>(script, bindings, session, isolate);
-        }
-
-        public ScriptResponse<T> Query<T>(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool isolate = true)
+        public ScriptResponse Query(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool isolate = true, bool transaction = true)
         {
             var request = new ScriptRequest(script, bindings);
-            return this.ExecuteScript<T>(request, session, isolate);
+            return this.ExecuteScript<object>(request, session, isolate, transaction);
         }
 
-        public ScriptResponse ExecuteScript(ScriptRequest script, RexProSession session = null, bool isolate = true)
+        public ScriptResponse<T> Query<T>(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool isolate = true, bool transaction = true)
         {
-            return this.ExecuteScript<object>(script, session, isolate);
+            var request = new ScriptRequest(script, bindings);
+            return this.ExecuteScript<T>(request, session, isolate, transaction);
         }
 
-        public ScriptResponse<T> ExecuteScript<T>(ScriptRequest script, RexProSession session = null, bool isolate = true)
+        public ScriptResponse ExecuteScript(ScriptRequest script, RexProSession session = null, bool isolate = true, bool transaction = true)
         {
-            script.Meta.Isolate = isolate;
+            return this.ExecuteScript<object>(script, session, isolate, transaction);
+        }
+
+        public ScriptResponse<T> ExecuteScript<T>(ScriptRequest script, RexProSession session = null, bool isolate = true, bool transaction = true)
+        {
             script.Meta.InSession = session != null;
+            script.Meta.Isolate = isolate;
+            script.Meta.Transaction = transaction;
             script.Session = session;
 
             if (session == null)
