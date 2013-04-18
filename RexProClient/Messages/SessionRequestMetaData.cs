@@ -8,14 +8,11 @@
         private string graphObjName;
         private bool killSession;
 
-// ReSharper disable RedundantArgumentDefaultValue
-        public SessionRequestMetaData() : this(null, false)
-// ReSharper restore RedundantArgumentDefaultValue
+        public SessionRequestMetaData() : this(null)
         {
-
         }
 
-        public SessionRequestMetaData(GraphSettings settings = null, bool killSession = false)
+        public SessionRequestMetaData(GraphSettings settings, bool killSession = false)
         {
             settings = settings ?? GraphSettings.Default;
 

@@ -7,13 +7,11 @@
     {
         private readonly int channel;
 
-// ReSharper disable RedundantArgumentDefaultValue
-        public SessionRequest() : this(null, null, false)
-// ReSharper restore RedundantArgumentDefaultValue
+        public SessionRequest() : this(null)
         {
         }
 
-        public SessionRequest(GraphSettings settings = null, RexProSession session = null, bool killSession = false)
+        public SessionRequest(GraphSettings settings, RexProSession session = null, bool killSession = false)
         {
             this.channel = Messages.Channel.MsgPack;
             this.Session = session;

@@ -32,20 +32,28 @@
 
         private readonly string host;
         private readonly int port;
+        private GraphSettings settings;
 
         public RexProClient()
-            : this("localhost", DefaultPort)
+            : this("localhost", DefaultPort, GraphSettings.Default)
         {
         }
 
-        public RexProClient(string host) : this(host, DefaultPort)
+        public RexProClient(string host)
+            : this(host, DefaultPort, GraphSettings.Default)
         {
         }
 
         public RexProClient(string host, int port)
+            : this(host, port, GraphSettings.Default)
+        {
+        }
+
+        public RexProClient(string host, int port, GraphSettings settings)
         {
             this.host = host;
             this.port = port;
+            this.Settings = settings;
         }
 
         public string Host
@@ -56,6 +64,12 @@
         public int Port
         {
             get { return this.port; }
+        }
+
+        public GraphSettings Settings
+        {
+            get { return this.settings; }
+            set { this.settings = value ?? GraphSettings.Default; }
         }
 
         public ScriptResponse Query(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool isolate = true)
@@ -79,6 +93,15 @@
             script.Meta.Isolate = isolate;
             script.Meta.InSession = session != null;
             script.Session = session;
+
+            if (session == null)
+            {
+                if (script.Meta.GraphName == null)
+                    script.Meta.GraphName = this.settings.GraphName;
+                if (script.Meta.GraphObjectName == null)
+                    script.Meta.GraphObjectName = this.settings.GraphObjectName;
+            }
+
             return this.SendRequest<ScriptRequest, ScriptResponse<T>>(script, MessageType.ScriptRequest);
         }
 
@@ -171,9 +194,9 @@
             stream.Write(messageBytes, 0, length);
         }
 
-        public RexProSession OpenSession(GraphSettings settings = null)
+        public RexProSession OpenSession()
         {
-            var request = new SessionRequest(settings);
+            var request = new SessionRequest(this.settings);
             var response = this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
             var session = new RexProSession(this, response.Session);
             var sessionGuid = new Guid(response.Session);
@@ -198,7 +221,7 @@
 
         public void KillSession(RexProSession session)
         {
-            var request = new SessionRequest(session: session, killSession: true);
+            var request = new SessionRequest(this.settings, session, true);
             this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
         }
     }
