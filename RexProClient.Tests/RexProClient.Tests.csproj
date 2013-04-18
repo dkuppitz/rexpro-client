@@ -37,6 +37,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="MsgPack, Version=0.3.0.0, Culture=neutral, PublicKeyToken=a2625990d5dc0167, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MsgPack.Cli.0.3\lib\net40-client\MsgPack.dll</HintPath>
@@ -58,6 +59,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ConstructorTests.cs" />
+    <Compile Include="DynamicScriptTests.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>

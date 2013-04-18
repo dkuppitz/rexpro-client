@@ -7,7 +7,7 @@
     using Rexster.Tests.Properties;
 
     [TestClass]
-    public class ScriptTests
+    public class DynamicScriptTests
     {
         private RexProClient client;
 
@@ -31,7 +31,7 @@
         public void QueryScalarValue()
         {
             var script = InitScript("g.V.count()");
-            var count = client.Query<int>(script).Result;
+            var count = client.Query<dynamic>(script).Result;
 
             Assert.AreEqual(3, count);
         }
@@ -40,38 +40,43 @@
         public void QuerySingleVertex()
         {
             var script = InitScript("g.V.next()");
-            var vertex = client.Query<Vertex<TestVertex>>(script).Result;
+            var vertex = client.Query<dynamic>(script).Result;
 
             Assert.IsNotNull(vertex);
+            Assert.IsNotNull(vertex._id);
+            Assert.AreEqual(vertex._type, "vertex");
+            Assert.IsNotNull(vertex._properties);
+            Assert.IsNotNull(vertex._properties.name);
         }
 
         [TestMethod]
         public void QuerySingleMap()
         {
             var script = InitScript("g.V.next().map()");
-            var item = client.Query<TestVertex>(script).Result;
+            var item = client.Query<dynamic>(script).Result;
 
             Assert.IsNotNull(item);
+            Assert.IsNotNull(item.name);
         }
 
         [TestMethod]
         public void QueryMultipleVertices()
         {
             var script = InitScript("g.V");
-            var vertices = client.Query<Vertex<TestVertex>[]>(script).Result;
+            var vertices = client.Query<dynamic[]>(script).Result;
 
             Assert.IsNotNull(vertices);
             Assert.AreEqual(3, vertices.Length);
-            Assert.IsTrue(vertices.Any(vertex => vertex.Data.Name == "V1"));
-            Assert.IsTrue(vertices.Any(vertex => vertex.Data.Name == "V2"));
-            Assert.IsTrue(vertices.Any(vertex => vertex.Data.Name == "V3"));
+            Assert.IsTrue(vertices.Any(vertex => vertex._properties.name == "V1"));
+            Assert.IsTrue(vertices.Any(vertex => vertex._properties.name == "V2"));
+            Assert.IsTrue(vertices.Any(vertex => vertex._properties.name == "V3"));
         }
 
         [TestMethod]
         public void QueryMultipleMaps()
         {
             var script = InitScript("g.V.map()");
-            var items = client.Query<TestVertex[]>(script).Result;
+            var items = client.Query<dynamic[]>(script).Result;
 
             Assert.IsNotNull(items);
             Assert.AreEqual(3, items.Length);
@@ -84,36 +89,12 @@
         public void QueryEdge()
         {
             var script = InitScript("g.addEdge(null,g.v(0),g.v(1),'knows')");
-            var edge = client.Query<Edge>(script).Result;
+            var edge = client.Query<dynamic>(script).Result;
 
             Assert.IsNotNull(edge);
-            Assert.AreEqual("0", edge.OutVertex);
-            Assert.AreEqual("1", edge.InVertex);
-            Assert.AreEqual("knows", edge.Label);
-        }
-
-        [TestMethod, ExpectedException(typeof(RexProClientException))]
-        public void QueryError()
-        {
-            client.Query("g.A()");
-        }
-
-        [TestMethod]
-        public void QueryNoReturn()
-        {
-            var script = InitScript("null");
-            var res = client.Query(script);
-
-            Assert.IsNotNull(res);
-        }
-
-        [TestMethod]
-        public void ExecuteScriptRequest()
-        {
-            var script = new ScriptRequest(InitScript("g.V.count()"));
-            var count = client.ExecuteScript<long>(script).Result;
-
-            Assert.AreEqual(3, count);
+            Assert.AreEqual("0", edge._outV);
+            Assert.AreEqual("1", edge._inV);
+            Assert.AreEqual("knows", edge._label);
         }
     }
 }
