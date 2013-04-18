@@ -6,6 +6,7 @@
     using System.Globalization;
     using System.IO;
     using System.Net.Sockets;
+    using System.Reflection;
     using System.Threading;
 
     using MsgPack;
@@ -72,16 +73,16 @@
             set { this.settings = value ?? GraphSettings.Default; }
         }
 
-        public ScriptResponse Query(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool isolate = true, bool transaction = true)
+        public dynamic Query(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool isolate = true, bool transaction = true)
         {
             var request = new ScriptRequest(script, bindings);
-            return this.ExecuteScript<object>(request, session, isolate, transaction);
+            return this.ExecuteScript<object>(request, session, isolate, transaction).Result;
         }
 
-        public ScriptResponse<T> Query<T>(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool isolate = true, bool transaction = true)
+        public T Query<T>(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool isolate = true, bool transaction = true)
         {
             var request = new ScriptRequest(script, bindings);
-            return this.ExecuteScript<T>(request, session, isolate, transaction);
+            return this.ExecuteScript<T>(request, session, isolate, transaction).Result;
         }
 
         public ScriptResponse ExecuteScript(ScriptRequest script, RexProSession session = null, bool isolate = true, bool transaction = true)
@@ -112,8 +113,6 @@
             where TResponse : RexProMessage
         {
             TResponse result;
-
-            var serializer = MessagePackSerializer.Create<TResponse>();
 
             Stream stream;
 
@@ -163,7 +162,28 @@
                         throw new RexProClientSerializationException(msg);
                     }
 
-                    result = serializer.Unpack(stream);
+                    var responseType = typeof (TResponse);
+                    if (responseType.IsDynamicScriptResponse())
+                    {
+                        PropertyInfo pi;
+                        
+                        var tmp = MessagePackSerializer.Create<DynamicScriptResponse>().Unpack(stream);
+                        
+                        result = Activator.CreateInstance<TResponse>();
+                        result.Request = tmp.Request;
+                        result.Session = tmp.Session;
+
+                        if (null != (pi = responseType.GetProperty("Meta")))
+                            pi.GetSetMethod().Invoke(result, new object[] { tmp.Meta });
+                        if (null != (pi = responseType.GetProperty("Result")))
+                            pi.GetSetMethod().Invoke(result, new object[] { tmp.Result });
+                        if (null != (pi = responseType.GetProperty("Bindings")))
+                            pi.GetSetMethod().Invoke(result, new object[] { tmp.Bindings });
+                    }
+                    else
+                    {
+                        result = MessagePackSerializer.Create<TResponse>().Unpack(stream);
+                    }
                 }
             }
 

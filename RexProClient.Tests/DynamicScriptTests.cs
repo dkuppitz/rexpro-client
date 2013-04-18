@@ -1,9 +1,9 @@
 ﻿namespace Rexster.Tests
 {
     using System.Linq;
+
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-    using Rexster.Messages;
     using Rexster.Tests.Properties;
 
     [TestClass]
@@ -31,7 +31,7 @@
         public void QueryScalarValue()
         {
             var script = InitScript("g.V.count()");
-            var count = client.Query<dynamic>(script).Result;
+            var count = client.Query(script);
 
             Assert.AreEqual(3, count);
         }
@@ -40,7 +40,7 @@
         public void QuerySingleVertex()
         {
             var script = InitScript("g.V.next()");
-            var vertex = client.Query<dynamic>(script).Result;
+            var vertex = client.Query(script);
 
             Assert.IsNotNull(vertex);
             Assert.IsNotNull(vertex._id);
@@ -53,7 +53,7 @@
         public void QuerySingleMap()
         {
             var script = InitScript("g.V.next().map()");
-            var item = client.Query<dynamic>(script).Result;
+            var item = client.Query(script);
 
             Assert.IsNotNull(item);
             Assert.IsNotNull(item.name);
@@ -63,7 +63,7 @@
         public void QueryMultipleVertices()
         {
             var script = InitScript("g.V");
-            var vertices = client.Query<dynamic[]>(script).Result;
+            var vertices = client.Query<dynamic[]>(script);
 
             Assert.IsNotNull(vertices);
             Assert.AreEqual(3, vertices.Length);
@@ -76,20 +76,20 @@
         public void QueryMultipleMaps()
         {
             var script = InitScript("g.V.map()");
-            var items = client.Query<dynamic[]>(script).Result;
+            var items = client.Query<dynamic[]>(script);
 
             Assert.IsNotNull(items);
             Assert.AreEqual(3, items.Length);
-            Assert.IsTrue(items.Any(item => item.Name == "V1"));
-            Assert.IsTrue(items.Any(item => item.Name == "V2"));
-            Assert.IsTrue(items.Any(item => item.Name == "V3"));
+            Assert.IsTrue(items.Any(item => item.name == "V1"));
+            Assert.IsTrue(items.Any(item => item.name == "V2"));
+            Assert.IsTrue(items.Any(item => item.name == "V3"));
         }
 
         [TestMethod]
         public void QueryEdge()
         {
             var script = InitScript("g.addEdge(null,g.v(0),g.v(1),'knows')");
-            var edge = client.Query<dynamic>(script).Result;
+            var edge = client.Query(script);
 
             Assert.IsNotNull(edge);
             Assert.AreEqual("0", edge._outV);

@@ -33,10 +33,7 @@ client.Query("g.addVertex(['name':name]); null", bindings);
 ### Queries with scalar return value
 
 ```C#
-var result = client.Query<long>("g.V.count()").Result;
-
-// or make use of automatic type casting
-long count = client.Query<long>("g.V.count()");
+var result = client.Query<long>("g.V.count()");
 ```
 
 ### Queries with complex return value
@@ -44,10 +41,7 @@ long count = client.Query<long>("g.V.count()");
 ```C#
 // not really different from scalar return values
 var bindings = new Dictionary<string, object> {{ "name", "foo" }};
-var result = client.Query<Vertex<Example>>("g.addVertex(['name':name])", bindings).Result;
-
-// again you can use automatic type casting (this time an explicit cast)
-var example = (Example)client.Query<Vertex<Example>>("g.addVertex(['name':name]).map()", bindings);
+var result = client.Query<Vertex<Example>>("g.addVertex(['name':name])", bindings);
 ```
 
 ### Queries with sessions
@@ -55,11 +49,19 @@ var example = (Example)client.Query<Vertex<Example>>("g.addVertex(['name':name])
 ```C#
 using (var session = client.StartSession())
 {
-    client.Query("number = 1 + 2; null", session);
+    client.Query("number = 1 + 2", session);
     var result = client.Query<int>("number", session);
 }
 ```
 
-## TODO
+### Dynamic queries
 
-Transactions
+```C#
+dynamic res1 = client.Query("1 + 2");
+dynamic res2 = client.Query("g.addVertex(['foo':'bar'])")
+dynamic res3 = client.Query("g.addVertex(['lorem':'ipsum']).map()")
+
+Console.WriteLine("1 + 2 = {0}", res1);
+Console.WriteLine("foo vertex id: {0}", res2._id);
+Console.WriteLine("lorem: {0}", res3.lorem);
+```
