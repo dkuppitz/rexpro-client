@@ -20,7 +20,7 @@
         [TestMethod]
         public void OpenCloseSession()
         {
-            using (var session = client.OpenSession())
+            using (var session = client.StartSession())
             {
                 Assert.IsNotNull(session);
             }
@@ -29,7 +29,7 @@
         [TestMethod]
         public void UseSessionWithoutGraph()
         {
-            using (var session = client.OpenSession())
+            using (var session = client.StartSession())
             {
                 int expected = client.Query<int>("number = 1 + 2", session: session, isolate: false);
                 int actual = client.Query<int>("number", session: session, isolate: false);
@@ -41,7 +41,7 @@
         [TestMethod]
         public void UseSessionWithGraph()
         {
-            using (var session = client.OpenSession())
+            using (var session = client.StartSession())
             {
                 var bindings = new Dictionary<string, object> { { "name", "foo" } };
                 var request = new ScriptRequest("v = g.addVertex(['name':name])", bindings);

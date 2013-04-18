@@ -196,7 +196,7 @@
             stream.Write(messageBytes, 0, length);
         }
 
-        public RexProSession OpenSession()
+        public RexProSession StartSession()
         {
             var request = new SessionRequest(this.settings);
             var response = this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);

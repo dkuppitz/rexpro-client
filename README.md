@@ -53,7 +53,7 @@ var example = (Example)client.Query<Vertex<Example>>("g.addVertex(['name':name])
 ### Queries with sessions
 
 ```C#
-using (var session = client.OpenSession())
+using (var session = client.StartSession())
 {
     client.Query("number = 1 + 2; null", session);
     var result = client.Query<int>("number", session);
