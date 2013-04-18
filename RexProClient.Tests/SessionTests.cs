@@ -31,8 +31,8 @@
         {
             using (var session = client.StartSession())
             {
-                int expected = client.Query<int>("number = 1 + 2", session: session, isolate: false);
-                int actual = client.Query<int>("number", session: session, isolate: false);
+                var expected = client.Query<int>("number = 1 + 2", session: session, isolate: false);
+                var actual = client.Query<int>("number", session: session, isolate: false);
 
                 Assert.AreEqual(expected, actual);
             }
