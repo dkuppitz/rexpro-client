@@ -96,5 +96,18 @@
             Assert.AreEqual("1", edge._inV);
             Assert.AreEqual("knows", edge._label);
         }
+
+        [TestMethod]
+        public void DynamicLinq()
+        {
+            var vertices = client.Query<dynamic[]>("g.V");
+            var idQuery =
+                from vertex in vertices
+                select vertex._id;
+
+            var list = string.Join(",", idQuery);
+
+            Assert.IsFalse(string.IsNullOrEmpty(list));
+        }
     }
 }
