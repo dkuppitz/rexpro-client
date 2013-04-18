@@ -57,11 +57,16 @@ using (var session = client.StartSession())
 ### Dynamic queries
 
 ```C#
-dynamic res1 = client.Query("1 + 2");
-dynamic res2 = client.Query("g.addVertex(['foo':'bar'])")
-dynamic res3 = client.Query("g.addVertex(['lorem':'ipsum']).map()")
+var res1 = client.Query("1 + 2");
+var res2 = client.Query("g.addVertex(['foo':'bar'])")
+var res3 = client.Query("g.addVertex(['lorem':'ipsum']).map()")
+var vertices = client.Query<dynamic[]>("g.V");
+var idQuery =
+    from vertex in vertices
+    select vertex._id;
 
 Console.WriteLine("1 + 2 = {0}", res1);
 Console.WriteLine("foo vertex id: {0}", res2._id);
 Console.WriteLine("lorem: {0}", res3.lorem);
+Console.WriteLine("vertex ids: {0}", string.Join(",", idQuery));
 ```
