@@ -176,7 +176,7 @@
                         if (null != (pi = responseType.GetProperty("Meta")))
                             pi.GetSetMethod().Invoke(result, new object[] { tmp.Meta });
                         if (null != (pi = responseType.GetProperty("Result")))
-                            pi.GetSetMethod().Invoke(result, new object[] { tmp.Result });
+                            pi.GetSetMethod().Invoke(result, new[] { tmp.Result });
                         if (null != (pi = responseType.GetProperty("Bindings")))
                             pi.GetSetMethod().Invoke(result, new object[] { tmp.Bindings });
                     }
