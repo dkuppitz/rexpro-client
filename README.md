@@ -63,10 +63,10 @@ var res3 = client.Query("g.addVertex(['lorem':'ipsum']).map()")
 var vertices = client.Query<dynamic[]>("g.V");
 var idQuery =
     from vertex in vertices
-    select vertex._id;
+    select vertex.Id;
 
 Console.WriteLine("1 + 2 = {0}", res1);
-Console.WriteLine("foo vertex id: {0}", res2._id);
+Console.WriteLine("foo vertex id: {0}", res2.Id);
 Console.WriteLine("lorem: {0}", res3.lorem);
 Console.WriteLine("vertex ids: {0}", string.Join(",", idQuery));
 ```

@@ -44,10 +44,10 @@
             var vertex = client.Query(script);
 
             Assert.IsNotNull(vertex);
-            Assert.IsNotNull(vertex._id);
-            Assert.AreEqual(vertex._type, "vertex");
-            Assert.IsNotNull(vertex._properties);
-            Assert.IsNotNull(vertex._properties.name);
+            Assert.IsInstanceOfType(vertex, typeof(Vertex));
+            Assert.IsNotNull(vertex.Id);
+            Assert.IsNotNull(vertex.Data);
+            Assert.IsNotNull(vertex.Data.name);
         }
 
         [TestMethod]
@@ -68,9 +68,9 @@
 
             Assert.IsNotNull(vertices);
             Assert.AreEqual(3, vertices.Length);
-            Assert.IsTrue(vertices.Any(vertex => vertex._properties.name == "V1"));
-            Assert.IsTrue(vertices.Any(vertex => vertex._properties.name == "V2"));
-            Assert.IsTrue(vertices.Any(vertex => vertex._properties.name == "V3"));
+            Assert.IsTrue(vertices.Any(vertex => vertex.Data.name == "V1"));
+            Assert.IsTrue(vertices.Any(vertex => vertex.Data.name == "V2"));
+            Assert.IsTrue(vertices.Any(vertex => vertex.Data.name == "V3"));
         }
 
         [TestMethod]
@@ -89,13 +89,14 @@
         [TestMethod]
         public void QueryEdge()
         {
-            var script = InitScript("g.addEdge(null,g.v(0),g.v(1),'knows')");
+            var script = InitScript("e=g.addEdge(null,g.v(0),g.v(1),'knows')");
             var edge = client.Query(script);
 
             Assert.IsNotNull(edge);
-            Assert.AreEqual("0", edge._outV);
-            Assert.AreEqual("1", edge._inV);
-            Assert.AreEqual("knows", edge._label);
+            Assert.IsInstanceOfType(edge, typeof(Edge));
+            Assert.AreEqual("0", edge.OutVertex);
+            Assert.AreEqual("1", edge.InVertex);
+            Assert.AreEqual("knows", edge.Label);
         }
 
         [TestMethod]
@@ -104,7 +105,7 @@
             var vertices = client.Query<dynamic[]>("g.V");
             var idQuery =
                 from vertex in vertices
-                select vertex._id;
+                select vertex.Id;
 
             var list = string.Join(",", idQuery);
 

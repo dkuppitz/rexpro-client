@@ -1,18 +1,27 @@
 namespace Rexster
 {
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     [DataContract]
-    public class Vertex
+    public class Vertex<T> : GraphItem<T>
     {
-        [DataMember(Name = "_id")]
-        public string Id { get; set; }
     }
 
     [DataContract]
-    public class Vertex<T> : Vertex
+    public class Vertex : Vertex<dynamic>
     {
-        [DataMember(Name = "_properties")]
-        public T Data { get; set; }
+        internal static Vertex FromMap(IDictionary<string, object> map)
+        {
+            var result = new Vertex { Id = map["_id"] as string };
+
+            object value;
+            if (map.TryGetValue("_properties", out value))
+            {
+                result.Data = value;
+            }
+
+            return result;
+        }
     }
 }
