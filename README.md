@@ -70,3 +70,8 @@ Console.WriteLine("foo vertex id: {0}", res2._id);
 Console.WriteLine("lorem: {0}", res3.lorem);
 Console.WriteLine("vertex ids: {0}", string.Join(",", idQuery));
 ```
+
+## Run unit test
+To run the unit tests, you first need to adjust the settings for your RexPro server.
+In Visual Studio go to the projects application settings and customize the values for
+the fields **RexProHost** and **RexProPort**.
