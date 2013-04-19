@@ -46,6 +46,7 @@
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Messages\DynamicScriptResponse.cs" />
     <Compile Include="Messages\GraphSettings.cs" />
     <Compile Include="RexProClientSerializationException.cs" />
     <Compile Include="Messages\Channel.cs" />
