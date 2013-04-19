@@ -3,7 +3,7 @@ rexpro-client
 
 RexPro Client for .NET
 
-## getting started
+## Getting started
 
 First create a simple class to hold some vertex data.
 
@@ -71,7 +71,7 @@ Console.WriteLine("lorem: {0}", res3.lorem);
 Console.WriteLine("vertex ids: {0}", string.Join(",", idQuery));
 ```
 
-## Run unit test
+## Run unit tests
 To run the unit tests, you first need to adjust the settings for your RexPro server.
 In Visual Studio go to the projects application settings and customize the values for
 the fields **RexProHost** and **RexProPort**.
