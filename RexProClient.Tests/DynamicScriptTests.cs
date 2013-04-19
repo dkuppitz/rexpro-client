@@ -1,5 +1,6 @@
 ﻿namespace Rexster.Tests
 {
+    using System.Collections.Generic;
     using System.Linq;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -108,6 +109,31 @@
             var list = string.Join(",", idQuery);
 
             Assert.IsFalse(string.IsNullOrEmpty(list));
+        }
+
+        [TestMethod]
+        public void QueryPath()
+        {
+            const string script = "g.addEdge(null,g.v(0),g.v(1),'knows');" +
+                                  "g.addEdge(null,g.v(0),g.v(2),'knows');" +
+                                  "g.addEdge(null,g.v(1),g.v(2),'knows');" +
+                                  "g.v(0).out().loop(1){true}{true}.path()";
+
+            var paths = client.Query<IEnumerable<dynamic>>(InitScript(script));
+            var pathLengths =
+                (from path in paths
+                 select new
+                 {
+                     Path = path,
+                     path.Length
+                 }).ToArray();
+
+            Assert.IsNotNull(paths);
+            Assert.AreEqual(3, pathLengths.Length);
+            Assert.AreEqual(2, pathLengths.Min(p => p.Length));
+            Assert.AreEqual(3, pathLengths.Max(p => p.Length));
+            Assert.AreEqual(2, pathLengths.Count(p => p.Length == 2));
+            Assert.AreEqual(1, pathLengths.Count(p => p.Length == 3));
         }
     }
 }
