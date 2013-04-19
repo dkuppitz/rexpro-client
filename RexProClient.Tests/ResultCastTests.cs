@@ -1,6 +1,7 @@
 ﻿namespace Rexster.Tests
 {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Rexster.Messages;
     using Rexster.Tests.Properties;
 
     [TestClass]
@@ -17,14 +18,16 @@
         [TestMethod]
         public void ValueTypeCast()
         {
-            var result = client.Query<int>("1+2");
+            var script = new ScriptRequest("1+2");
+            int result = client.ExecuteScript<int>(script);
             Assert.AreEqual(3, result);
         }
 
         [TestMethod]
         public void VertexCast()
         {
-            var result = client.Query<Vertex<TestVertex>>("g = new TinkerGraph(); g.addVertex(['name':'foo'])");
+            var script = new ScriptRequest("g = new TinkerGraph(); g.addVertex(['name':'foo'])");
+            Vertex<TestVertex> result = client.ExecuteScript<Vertex<TestVertex>>(script);
 
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Data);
@@ -35,7 +38,8 @@
         [TestMethod]
         public void ObjectCast()
         {
-            var result = client.Query<TestVertex>("g = new TinkerGraph(); g.addVertex(['name':'foo']).map()");
+            var script = new ScriptRequest("g = new TinkerGraph(); g.addVertex(['name':'foo']).map()");
+            TestVertex result = client.ExecuteScript<TestVertex>(script);
 
             Assert.IsNotNull(result);
             Assert.AreEqual("foo", result.Name);
