@@ -3,6 +3,14 @@ rexpro-client
 
 RexPro Client for .NET
 
+## Install
+
+To install .NET RexPro Client, run the following command in the NuGet Package Manager Console:
+
+```
+PM> Install-Package RexProClient
+```
+
 ## Getting started
 
 First create a simple class to hold some vertex data.
