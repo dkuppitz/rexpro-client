@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // Attribute gesteuert. Ändern Sie diese Attributwerte, um die Informationen zu ändern,
 // die mit einer Assembly verknüpft sind.
 [assembly: AssemblyTitle(".NET RexPro Client")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("RexPro Client for .NET")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Daniel Kuppitz")]
 [assembly: AssemblyProduct(".NET RexPro Client")]
