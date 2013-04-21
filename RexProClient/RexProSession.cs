@@ -2,7 +2,7 @@
 {
     using System;
 
-    public class RexProSession : IDisposable
+    public sealed class RexProSession : IDisposable
     {
         private readonly RexProClient client;
         private readonly byte[] session;

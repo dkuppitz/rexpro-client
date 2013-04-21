@@ -149,8 +149,8 @@
 
                     if (responseMessageType == MessageType.Error)
                     {
-                        var msg = ErrorMessageSerializer.Unpack(stream);
-                        throw new RexProClientException(msg);
+                        var error = ErrorMessageSerializer.Unpack(stream);
+                        throw new RexProClientException(error);
                     }
 
                     var expectedResponseMessageType = ExpectedResponseMessageType[requestMessageType];
