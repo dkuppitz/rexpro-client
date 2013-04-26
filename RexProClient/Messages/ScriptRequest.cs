@@ -2,6 +2,7 @@ namespace Rexster.Messages
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     using MsgPack.Serialization;
 
@@ -23,7 +24,8 @@ namespace Rexster.Messages
         public ScriptRequest(string script, Dictionary<string, object> bindings) : this()
         {
             this.Script = script;
-            this.bindings = bindings;
+            if (bindings != null)
+                bindings.ToList().ForEach(binding => this.AddBinding(binding.Key, binding.Value));
         }
 
         [MessagePackMember(3)]
@@ -45,15 +47,20 @@ namespace Rexster.Messages
             {
                 this.bindings = new Dictionary<string, object>
                 {
-                    { name, value }
+                    { name, GetBindingValue(value) }
                 };
             }
             else
             {
-                this.bindings.Add(name, value);
+                this.bindings.Add(name, GetBindingValue(value));
             }
 
             return this;
+        }
+
+        private static object GetBindingValue(object value)
+        {
+            return (value is GraphItem) ? ((GraphItem) value).Id : value;
         }
     }
 }

@@ -136,5 +136,31 @@
             Assert.AreEqual(2, pathLengths.Count(p => p.Length == 2));
             Assert.AreEqual(1, pathLengths.Count(p => p.Length == 3));
         }
+
+        [TestMethod]
+        public void UseVertexAsBinding()
+        {
+            using (var session = client.StartSession())
+            {
+                var v1 = client.Query("g.addVertex()", session: session);
+                var v2 = client.Query("g.addVertex()", session: session);
+                var bindings = new Dictionary<string, object>
+                {
+                    { "v1", v1 },
+                    { "v2", v2 },
+                    { "label", "knows" }
+                };
+                var edge = client.Query("g.addEdge(g.v(v1), g.v(v2), label)", bindings, session);
+                bindings.Remove("v2");
+                var v3 = client.Query("g.v(v1).out(label).next()", bindings, session);
+                client.Query("g.rollback()");
+
+                Assert.IsInstanceOfType(v1, typeof(Vertex));
+                Assert.IsInstanceOfType(v2, typeof(Vertex));
+                Assert.IsInstanceOfType(v3, typeof(Vertex));
+                Assert.IsInstanceOfType(edge, typeof(Edge));
+                Assert.AreEqual(((Vertex)v2).Id, ((Vertex)v3).Id);
+            }
+        }
     }
 }
