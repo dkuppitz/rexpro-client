@@ -79,6 +79,23 @@ Console.WriteLine("lorem: {0}", res3.lorem);
 Console.WriteLine("vertex ids: {0}", string.Join(",", idQuery));
 ```
 
+### Use vertex in bindings
+
+```C#
+using (var session = client.StartSession())
+{
+    var v1 = client.Query("g.addVertex()", session: session);
+    var v2 = client.Query("g.addVertex()", session: session);
+    var bindings = new Dictionary<string, object>
+    {
+        { "v1", v1 },
+        { "v2", v2 },
+        { "label", "knows" }
+    };
+
+    client.Query("g.addEdge(g.v(v1), g.v(v2), label)", bindings, session);
+```
+
 ## Run unit tests
 To run the unit tests, you first need to adjust the settings for your RexPro server.
 In Visual Studio go to the projects application settings and customize the values for
