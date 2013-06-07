@@ -34,6 +34,7 @@
         private readonly string host;
         private readonly int port;
         private GraphSettings settings;
+        private readonly Func<TcpClient> tcpClientProvider;
 
         public RexProClient()
             : this("localhost", DefaultPort, GraphSettings.Default)
@@ -55,6 +56,16 @@
             this.host = host;
             this.port = port;
             this.Settings = settings;
+        }
+
+        public RexProClient(Func<TcpClient> tcpClientProvider) 
+            : this(tcpClientProvider, GraphSettings.Default)
+        {
+        }
+
+        public RexProClient(Func<TcpClient> tcpClientProvider, GraphSettings settings)
+        {
+            this.tcpClientProvider = tcpClientProvider;
         }
 
         public string Host
@@ -108,6 +119,12 @@
             return this.SendRequest<ScriptRequest, ScriptResponse<T>>(script, MessageType.ScriptRequest);
         }
 
+        private TcpClient NewTcpClient() {
+            System.Console.WriteLine("NEW CLIENT: "+tcpClientProvider+" / "+host+" / "+port);
+            return (tcpClientProvider != null ? 
+                tcpClientProvider() : new TcpClient(this.host, this.port));
+        }
+
         private TResponse SendRequest<TRequest, TResponse>(TRequest message, byte requestMessageType)
             where TRequest : RexProMessage
             where TResponse : RexProMessage
@@ -119,11 +136,11 @@
             if (message.Session != null)
             {
                 var guid = new Guid(message.Session);
-                stream = SessionStreams.GetOrAdd(guid, _ => new TcpClient(this.host, this.port).GetStream());
+                stream = SessionStreams.GetOrAdd(guid, _ => NewTcpClient().GetStream());
             }
             else
             {
-                stream = new TcpClient(this.host, this.port).GetStream();
+                stream = NewTcpClient().GetStream();
             }
 
             using (var packer = Packer.Create(stream, false))
@@ -223,7 +240,7 @@
             var session = new RexProSession(this, response.Session);
             var sessionGuid = new Guid(response.Session);
 
-            SessionStreams.GetOrAdd(sessionGuid, _ => new TcpClient(this.host, this.port).GetStream());
+            SessionStreams.GetOrAdd(sessionGuid, _ => NewTcpClient().GetStream());
             session.Kill += (sender, args) =>
             {
                 while (SessionStreams.ContainsKey(sessionGuid))
