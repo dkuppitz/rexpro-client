@@ -31,9 +31,9 @@
         private static readonly ConcurrentDictionary<Guid, NetworkStream> SessionStreams =
             new ConcurrentDictionary<Guid, NetworkStream>();
 
+        private GraphSettings settings;
         private readonly string host;
         private readonly int port;
-        private GraphSettings settings;
         private readonly Func<TcpClient> tcpClientProvider;
 
         public RexProClient()
@@ -52,10 +52,15 @@
         }
 
         public RexProClient(string host, int port, GraphSettings settings)
+            : this(CreateDefaultTcpProvider(host, port), settings)
         {
             this.host = host;
             this.port = port;
-            this.Settings = settings;
+        }
+
+        private static Func<TcpClient> CreateDefaultTcpProvider(string host, int port)
+        {
+            return () => new TcpClient(host, port);
         }
 
         public RexProClient(Func<TcpClient> tcpClientProvider) 
@@ -65,17 +70,33 @@
 
         public RexProClient(Func<TcpClient> tcpClientProvider, GraphSettings settings)
         {
+            if (tcpClientProvider == null)
+                throw new ArgumentNullException("tcpClientProvider");
+
             this.tcpClientProvider = tcpClientProvider;
+            this.Settings = settings;
         }
 
         public string Host
         {
-            get { return this.host; }
+            get
+            {
+                if (this.host != null)
+                    return this.host;
+
+                throw new RexProClientException("No static host provided.");
+            }
         }
 
         public int Port
         {
-            get { return this.port; }
+            get
+            {
+                if (this.port > 0)
+                    return this.port;
+
+                throw new RexProClientException("No static port provided.");
+            }
         }
 
         public GraphSettings Settings
@@ -119,11 +140,6 @@
             return this.SendRequest<ScriptRequest, ScriptResponse<T>>(script, MessageType.ScriptRequest);
         }
 
-        private TcpClient NewTcpClient() {
-            return (tcpClientProvider != null ? 
-                tcpClientProvider() : new TcpClient(this.host, this.port));
-        }
-
         private TResponse SendRequest<TRequest, TResponse>(TRequest message, byte requestMessageType)
             where TRequest : RexProMessage
             where TResponse : RexProMessage
@@ -135,11 +151,11 @@
             if (message.Session != null)
             {
                 var guid = new Guid(message.Session);
-                stream = SessionStreams.GetOrAdd(guid, _ => NewTcpClient().GetStream());
+                stream = SessionStreams.GetOrAdd(guid, _ => tcpClientProvider().GetStream());
             }
             else
             {
-                stream = NewTcpClient().GetStream();
+                stream = tcpClientProvider().GetStream();
             }
 
             using (var packer = Packer.Create(stream, false))
@@ -239,7 +255,7 @@
             var session = new RexProSession(this, response.Session);
             var sessionGuid = new Guid(response.Session);
 
-            SessionStreams.GetOrAdd(sessionGuid, _ => NewTcpClient().GetStream());
+            SessionStreams.GetOrAdd(sessionGuid, _ => tcpClientProvider().GetStream());
             session.Kill += (sender, args) =>
             {
                 while (SessionStreams.ContainsKey(sessionGuid))
