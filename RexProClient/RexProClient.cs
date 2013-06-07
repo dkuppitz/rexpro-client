@@ -120,7 +120,6 @@
         }
 
         private TcpClient NewTcpClient() {
-            System.Console.WriteLine("NEW CLIENT: "+tcpClientProvider+" / "+host+" / "+port);
             return (tcpClientProvider != null ? 
                 tcpClientProvider() : new TcpClient(this.host, this.port));
         }
