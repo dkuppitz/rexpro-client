@@ -146,25 +146,25 @@
         {
             TResponse result;
 
-            Stream stream;
+            NetworkStream netStream;
 
             if (message.Session != null)
             {
                 var guid = new Guid(message.Session);
-                stream = SessionStreams.GetOrAdd(guid, _ => tcpClientProvider().GetStream());
+                netStream = SessionStreams.GetOrAdd(guid, _ => tcpClientProvider().GetStream());
             }
             else
             {
-                stream = tcpClientProvider().GetStream();
+                netStream = tcpClientProvider().GetStream();
             }
 
-            using (var packer = Packer.Create(stream, false))
+            using (var packer = Packer.Create(netStream, false))
             {
                 packer.Pack(ProtocolVersion).Pack(requestMessageType);
 
-                PackMessage(stream, message);
+                PackMessage(netStream, message);
 
-                using (var unpacker = Unpacker.Create(stream, false))
+                using (var unpacker = Unpacker.Create(netStream, false))
                 {
                     byte protocolVersion, responseMessageType;
 
@@ -177,52 +177,78 @@
 
                     // skip message length bytes
                     // don't use unpacker as it throws an exception for some lengths (don't know why)
-                    stream.Skip(4);
+                    //
+                    // Thanks to Ozcan Degirmenci (glikoz) for pointing out that reading the stream without taking the
+                    // message length header into account can/will probably fail.
+                    const int bufferSize = 4096;
+                    var buffer = new byte[bufferSize];
+                    var bytesRead = 0;
+                    var messageLength =
+                        (netStream.ReadByte() << 24) |
+                        (netStream.ReadByte() << 16) |
+                        (netStream.ReadByte() << 8) |
+                        (netStream.ReadByte());
 
-                    if (responseMessageType == MessageType.Error)
+                    using (var stream = new MemoryStream())
                     {
-                        var error = ErrorMessageSerializer.Unpack(stream);
-                        throw new RexProClientException(error);
-                    }
+                        while (bytesRead < messageLength)
+                        {
+                            var bytes = netStream.Read(buffer, 0, bufferSize);
+                            if (bytes > 0)
+                            {
+                                stream.Write(buffer, 0, bytes);
+                                bytesRead += bytes;
+                            }
+                            Thread.SpinWait(10);
+                        }
 
-                    var expectedResponseMessageType = ExpectedResponseMessageType[requestMessageType];
-                    if (responseMessageType != expectedResponseMessageType)
-                    {
-                        var msg = string.Format(CultureInfo.InvariantCulture,
-                                                "Unexpected message type '{0}', expected '{1}'.",
-                                                requestMessageType, expectedResponseMessageType);
-                        throw new RexProClientSerializationException(msg);
-                    }
+                        stream.Seek(0, SeekOrigin.Begin);
 
-                    var responseType = typeof (TResponse);
-                    if (responseType.IsDynamicScriptResponse())
-                    {
-                        PropertyInfo pi;
-                        
-                        var tmp = MessagePackSerializer.Create<DynamicScriptResponse>().Unpack(stream);
-                        
-                        result = Activator.CreateInstance<TResponse>();
-                        result.Request = tmp.Request;
-                        result.Session = tmp.Session;
+                        if (responseMessageType == MessageType.Error)
+                        {
+                            var error = ErrorMessageSerializer.Unpack(stream);
+                            throw new RexProClientException(error);
+                        }
 
-                        if (null != (pi = responseType.GetProperty("Meta")))
-                            pi.GetSetMethod().Invoke(result, new object[] { tmp.Meta });
-                        if (null != (pi = responseType.GetProperty("Result")))
-                            pi.GetSetMethod().Invoke(result, new[] { tmp.Result });
-                        if (null != (pi = responseType.GetProperty("Bindings")))
-                            pi.GetSetMethod().Invoke(result, new object[] { tmp.Bindings });
-                    }
-                    else
-                    {
-                        result = MessagePackSerializer.Create<TResponse>().Unpack(stream);
+                        var expectedResponseMessageType = ExpectedResponseMessageType[requestMessageType];
+                        if (responseMessageType != expectedResponseMessageType)
+                        {
+                            var msg = string.Format(CultureInfo.InvariantCulture,
+                                                    "Unexpected message type '{0}', expected '{1}'.",
+                                                    requestMessageType, expectedResponseMessageType);
+                            throw new RexProClientSerializationException(msg);
+                        }
+
+                        var responseType = typeof (TResponse);
+                        if (responseType.IsDynamicScriptResponse())
+                        {
+                            PropertyInfo pi;
+
+                            var tmp = MessagePackSerializer.Create<DynamicScriptResponse>().Unpack(stream);
+
+                            result = Activator.CreateInstance<TResponse>();
+                            result.Request = tmp.Request;
+                            result.Session = tmp.Session;
+
+                            if (null != (pi = responseType.GetProperty("Meta")))
+                                pi.GetSetMethod().Invoke(result, new object[] { tmp.Meta });
+                            if (null != (pi = responseType.GetProperty("Result")))
+                                pi.GetSetMethod().Invoke(result, new[] { tmp.Result });
+                            if (null != (pi = responseType.GetProperty("Bindings")))
+                                pi.GetSetMethod().Invoke(result, new object[] { tmp.Bindings });
+                        }
+                        else
+                        {
+                            result = MessagePackSerializer.Create<TResponse>().Unpack(stream);
+                        }
                     }
                 }
             }
 
             if (message.Session == null)
             {
-                stream.Close();
-                stream.Dispose();
+                netStream.Close();
+                netStream.Dispose();
             }
 
             return result;
