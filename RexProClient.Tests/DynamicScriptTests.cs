@@ -2,7 +2,6 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     using Rexster.Tests.Properties;
@@ -166,41 +165,27 @@
         [TestMethod]
         public void LongText()
         {
-            string text;
-
-            using (var wc = new WebClient())
-            {
-                text = wc.DownloadString("http://loripsum.net/api/5/long/plaintext");
-            }
-
-            var script = string.Format("g.addVertex(['text':'''{0}''']).map()", text);
+            var script = string.Format("g.addVertex(['text':'''{0}''']).map()", Resources.LongText);
             var vertex = client.Query(script);
 
             Assert.IsNotNull(vertex);
-            Assert.AreEqual(text, vertex.text);
+            Assert.AreEqual(Resources.LongText, vertex.text.Replace("\n", "\r\n")); // inline values will lose \r in line breaks
         }
 
         [TestMethod]
         public void LongTextParams()
         {
-            string text;
-
-            using (var wc = new WebClient())
-            {
-                text = wc.DownloadString("http://loripsum.net/api/5/long/plaintext");
-            }
-
             const string script = "g.addVertex(['text':text]).map()";
 
             var parameters = new Dictionary<string, object>
             {
-                {"text", text}
+                {"text", Resources.LongText}
             };
 
             var vertex = client.Query(script, parameters);
 
             Assert.IsNotNull(vertex);
-            Assert.AreEqual(text, vertex.text);
+            Assert.AreEqual(Resources.LongText, vertex.text);
         }
     }
 }
