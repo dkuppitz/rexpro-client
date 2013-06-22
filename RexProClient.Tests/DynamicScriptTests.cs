@@ -165,11 +165,14 @@
         [TestMethod]
         public void LongText()
         {
-            var script = string.Format("g.addVertex(['text':'''{0}''']).map()", Resources.LongText);
+            var escapedText = Resources.LongText
+                                       .Replace("\r", "\\r")
+                                       .Replace("\n", "\\n");
+            var script = string.Format("g.addVertex(['text':'''{0}''']).map()", escapedText);
             var vertex = client.Query(script);
 
             Assert.IsNotNull(vertex);
-            Assert.AreEqual(Resources.LongText, vertex.text.Replace("\n", "\r\n")); // inline values will lose \r in line breaks
+            Assert.AreEqual(Resources.LongText, vertex.text);
         }
 
         [TestMethod]
