@@ -178,7 +178,7 @@
                     // skip message length bytes
                     // don't use unpacker as it throws an exception for some lengths (don't know why)
                     //
-                    // Thanks to Ozcan Degirmenci (glikoz) for pointing out that reading the stream without taking the
+                    // Thanks to Ozcan Degirmenci for pointing out that reading the stream without taking the
                     // message length header into account can/will probably fail.
                     const int bufferSize = 4096;
                     var buffer = new byte[bufferSize];
