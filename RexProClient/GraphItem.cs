@@ -1,18 +1,14 @@
 ﻿namespace Rexster
 {
-    using System.Runtime.Serialization;
+    using Newtonsoft.Json;
 
-    [DataContract]
     public abstract class GraphItem
     {
-        [DataMember(Name = "_id")]
-        public string Id;
+        [JsonProperty("_id")] public string Id;
     }
 
-    [DataContract]
     public abstract class GraphItem<T> : GraphItem
     {
-        [DataMember(Name = "_properties")]
-        public T Data;
+        [JsonProperty("_properties")] public T Data;
     }
 }

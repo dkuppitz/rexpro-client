@@ -4,7 +4,7 @@ namespace Rexster.Messages
     using System.Collections.Generic;
     using Newtonsoft.Json.Linq;
 
-    public class SessionResponse : RexProMessage<IDictionary<string, object>> 
+    public class SessionResponse : RexProMessage<IDictionary<string, object>>
     {
         public string[] Languages { get; set; }
 

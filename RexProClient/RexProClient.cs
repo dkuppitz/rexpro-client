@@ -201,10 +201,10 @@
                                                               message.GetType().Name));
             }
 
-            messageBytes[offset++] = (byte)((jsonLength >> 24) & 255);
-            messageBytes[offset++] = (byte)((jsonLength >> 16) & 255);
-            messageBytes[offset++] = (byte)((jsonLength >> 8) & 255);
-            messageBytes[offset++] = (byte)(jsonLength & 255);
+            messageBytes[offset++] = (byte) ((jsonLength >> 24) & 255);
+            messageBytes[offset++] = (byte) ((jsonLength >> 16) & 255);
+            messageBytes[offset++] = (byte) ((jsonLength >> 8) & 255);
+            messageBytes[offset++] = (byte) (jsonLength & 255);
 
             Array.Copy(jsonBytes, 0, messageBytes, offset, jsonLength);
 

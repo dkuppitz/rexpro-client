@@ -2,7 +2,6 @@
 {
     using System;
     using System.Runtime.Serialization;
-
     using Rexster.Messages;
 
     [Serializable]

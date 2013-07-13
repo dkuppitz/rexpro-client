@@ -7,8 +7,6 @@
         private readonly RexProClient client;
         private readonly Guid session;
 
-        internal event EventHandler Kill;
-
         internal RexProSession(RexProClient client, Guid session)
         {
             this.client = client;
@@ -22,6 +20,8 @@
             if (this.Kill != null)
                 this.Kill(this, EventArgs.Empty);
         }
+
+        internal event EventHandler Kill;
 
         public static implicit operator Guid(RexProSession session)
         {

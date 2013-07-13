@@ -11,8 +11,8 @@
         {
             return new object[]
             {
-                Session,
-                Request
+                this.Session,
+                this.Request
             };
         }
 
@@ -33,7 +33,7 @@
             Array.Resize(ref result, size + 1);
             if (this.Meta is IRequestMetaData)
             {
-                result[size] = ((IRequestMetaData)Meta).ToSerializableObject();
+                result[size] = ((IRequestMetaData) this.Meta).ToSerializableObject();
             }
             else
             {

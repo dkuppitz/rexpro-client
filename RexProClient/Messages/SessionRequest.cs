@@ -2,7 +2,7 @@
 {
     using System;
 
-    public class SessionRequest :  RexProMessage<SessionRequestMetaData>
+    public class SessionRequest : RexProMessage<SessionRequestMetaData>
     {
         public SessionRequest() : this(null)
         {
@@ -22,8 +22,8 @@
             var result = base.ToSerializableArray();
             var size = result.Length;
             Array.Resize(ref result, size + 2);
-            result[size++] = Username;
-            result[size] = Password;
+            result[size++] = this.Username;
+            result[size] = this.Password;
             return result;
         }
     }

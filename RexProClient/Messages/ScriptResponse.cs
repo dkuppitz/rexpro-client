@@ -25,7 +25,7 @@ namespace Rexster.Messages
         }
     }
 
-    public abstract class ScriptResponse : RexProMessage<IDictionary<string, object>> 
+    public abstract class ScriptResponse : RexProMessage<IDictionary<string, object>>
     {
         public IDictionary<string, object> Bindings { get; set; }
     }

@@ -72,8 +72,6 @@
     <Compile Include="Messages\ScriptRequest.cs" />
     <Compile Include="Messages\ScriptResponse.cs" />
     <Compile Include="RexProSession.cs" />
-    <Compile Include="StreamExtensions.cs" />
-    <Compile Include="TypeExtensions.cs" />
     <Compile Include="Vertex.cs" />
   </ItemGroup>
   <ItemGroup>
