@@ -1,8 +1,6 @@
 ﻿namespace Rexster.Messages
 {
-    using MsgPack;
-
-    public class SessionRequestMetaData : IPackable
+    public class SessionRequestMetaData : IRequestMetaData
     {
         private string graphName;
         private string graphObjName;
@@ -39,15 +37,14 @@
             set { this.killSession = value; }
         }
 
-        public void PackToMessage(Packer packer, PackingOptions options)
+        public object ToSerializableObject()
         {
-            packer.PackMapHeader(3);
-            packer.PackString("graphName");
-            packer.Pack(this.graphName);
-            packer.PackString("graphObjName");
-            packer.Pack(this.graphObjName);
-            packer.PackString("killSession");
-            packer.Pack(this.killSession);
+            return new
+            {
+                this.graphName,
+                this.graphObjName,
+                this.killSession
+            };
         }
     }
 }

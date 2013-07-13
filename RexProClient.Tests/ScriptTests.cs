@@ -2,9 +2,7 @@
 {
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     using Rexster.Messages;
-    using Rexster.Tests.Properties;
 
     [TestClass]
     public class ScriptTests
@@ -14,26 +12,33 @@
         [TestInitialize]
         public void Initialize()
         {
-            client = new RexProClient(Settings.Default.RexProHost, Settings.Default.RexProPort);
+            client = TestClientFactory.CreateClient();
+            client.Query("g.V.remove();g.commit()");
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            client.Query("g.V.remove();g.commit()");
         }
 
         private static string InitScript(string script)
         {
             return
-                "g = new TinkerGraph();" +
-                "g.addVertex(['name':'V1']);" +
-                "g.addVertex(['name':'V2']);" +
-                "g.addVertex(['name':'V3']);" +
+                "g.addVertex(0, ['name':'V1']);" +
+                "g.addVertex(1, ['name':'V2']);" +
+                "g.addVertex(2, ['name':'V3']);" +
                 script;
         }
 
         [TestMethod]
         public void QueryScalarValue()
         {
+            var count1 = client.Query<int>("g.V.count()");
             var script = InitScript("g.V.count()");
-            var count = client.Query<int>(script);
+            var count2 = client.Query<int>(script);
 
-            Assert.AreEqual(3, count);
+            Assert.AreEqual(3, count2 - count1);
         }
 
         [TestMethod]

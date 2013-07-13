@@ -12,7 +12,7 @@
         [TestInitialize]
         public void Initialize()
         {
-            client = new RexProClient(Settings.Default.RexProHost, Settings.Default.RexProPort);
+            client = TestClientFactory.CreateClient();
         }
 
         [TestMethod]
@@ -26,7 +26,7 @@
         [TestMethod]
         public void VertexCast()
         {
-            var script = new ScriptRequest("g = new TinkerGraph(); g.addVertex(['name':'foo'])");
+            var script = new ScriptRequest("g.addVertex(0, ['name':'foo'])");
             Vertex<TestVertex> result = client.ExecuteScript<Vertex<TestVertex>>(script);
 
             Assert.IsNotNull(result);
@@ -38,7 +38,7 @@
         [TestMethod]
         public void ObjectCast()
         {
-            var script = new ScriptRequest("g = new TinkerGraph(); g.addVertex(['name':'foo']).map()");
+            var script = new ScriptRequest("g.addVertex(['name':'foo']).map()");
             TestVertex result = client.ExecuteScript<TestVertex>(script);
 
             Assert.IsNotNull(result);

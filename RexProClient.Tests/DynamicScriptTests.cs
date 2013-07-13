@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     using Rexster.Tests.Properties;
 
     [TestClass]
@@ -14,16 +13,22 @@
         [TestInitialize]
         public void Initialize()
         {
-            client = new RexProClient(Settings.Default.RexProHost, Settings.Default.RexProPort);
+            client = TestClientFactory.CreateClient();
+            client.Query("g.V.remove();g.commit()");
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            client.Query("g.V.remove();g.commit()");
         }
 
         private static string InitScript(string script)
         {
             return
-                "g = new TinkerGraph();" +
-                "g.addVertex(['name':'V1']);" +
-                "g.addVertex(['name':'V2']);" +
-                "g.addVertex(['name':'V3']);" +
+                "g.addVertex(0, ['name':'V1']);" +
+                "g.addVertex(1, ['name':'V2']);" +
+                "g.addVertex(2, ['name':'V3']);" +
                 script;
         }
 
@@ -43,10 +48,9 @@
             var vertex = client.Query(script);
 
             Assert.IsNotNull(vertex);
-            Assert.IsInstanceOfType(vertex, typeof(Vertex));
-            Assert.IsNotNull(vertex.Id);
-            Assert.IsNotNull(vertex.Data);
-            Assert.IsNotNull(vertex.Data.name);
+            Assert.IsNotNull(vertex._id);
+            Assert.IsNotNull(vertex._properties);
+            Assert.IsNotNull(vertex._properties.name);
         }
 
         [TestMethod]
@@ -67,9 +71,9 @@
 
             Assert.IsNotNull(vertices);
             Assert.AreEqual(3, vertices.Length);
-            Assert.IsTrue(vertices.Any(vertex => vertex.Data.name == "V1"));
-            Assert.IsTrue(vertices.Any(vertex => vertex.Data.name == "V2"));
-            Assert.IsTrue(vertices.Any(vertex => vertex.Data.name == "V3"));
+            Assert.IsTrue(vertices.Any(vertex => vertex._properties.name == "V1"));
+            Assert.IsTrue(vertices.Any(vertex => vertex._properties.name == "V2"));
+            Assert.IsTrue(vertices.Any(vertex => vertex._properties.name == "V3"));
         }
 
         [TestMethod]
@@ -92,14 +96,26 @@
             var edge = client.Query(script);
 
             Assert.IsNotNull(edge);
-            Assert.IsInstanceOfType(edge, typeof(Edge));
-            Assert.AreEqual("0", edge.OutVertex);
-            Assert.AreEqual("1", edge.InVertex);
-            Assert.AreEqual("knows", edge.Label);
+            Assert.AreEqual(0, (int)edge._outV);
+            Assert.AreEqual(1, (int)edge._inV);
+            Assert.AreEqual("knows", (string)edge._label);
         }
 
         [TestMethod]
         public void DynamicLinq()
+        {
+            var vertices = client.Query<dynamic[]>(InitScript("g.V"));
+            var idQuery =
+                from vertex in vertices
+                select vertex.Id;
+
+            var list = string.Join(",", idQuery);
+
+            Assert.IsFalse(string.IsNullOrEmpty(list));
+        }
+
+        [TestMethod]
+        public void DynamicLinqEmpty()
         {
             var vertices = client.Query<dynamic[]>("g.V");
             var idQuery =
@@ -108,7 +124,7 @@
 
             var list = string.Join(",", idQuery);
 
-            Assert.IsFalse(string.IsNullOrEmpty(list));
+            Assert.IsTrue(string.IsNullOrEmpty(list));
         }
 
         [TestMethod]
@@ -125,15 +141,15 @@
                  select new
                  {
                      Path = path,
-                     path.Length
+                     path.Count
                  }).ToArray();
 
             Assert.IsNotNull(paths);
             Assert.AreEqual(3, pathLengths.Length);
-            Assert.AreEqual(2, pathLengths.Min(p => p.Length));
-            Assert.AreEqual(3, pathLengths.Max(p => p.Length));
-            Assert.AreEqual(2, pathLengths.Count(p => p.Length == 2));
-            Assert.AreEqual(1, pathLengths.Count(p => p.Length == 3));
+            Assert.AreEqual(2, pathLengths.Min(p => p.Count));
+            Assert.AreEqual(3, pathLengths.Max(p => p.Count));
+            Assert.AreEqual(2, pathLengths.Count(p => p.Count == 2));
+            Assert.AreEqual(1, pathLengths.Count(p => p.Count == 3));
         }
 
         [TestMethod]
@@ -149,16 +165,12 @@
                     { "v2", v2 },
                     { "label", "knows" }
                 };
-                var edge = client.Query("g.addEdge(g.v(v1), g.v(v2), label)", bindings, session);
+                client.Query("g.addEdge(g.v(v1), g.v(v2), label)", bindings, session);
                 bindings.Remove("v2");
                 var v3 = client.Query("g.v(v1).out(label).next()", bindings, session);
                 client.Query("g.rollback()");
 
-                Assert.IsInstanceOfType(v1, typeof(Vertex));
-                Assert.IsInstanceOfType(v2, typeof(Vertex));
-                Assert.IsInstanceOfType(v3, typeof(Vertex));
-                Assert.IsInstanceOfType(edge, typeof(Edge));
-                Assert.AreEqual(((Vertex)v2).Id, ((Vertex)v3).Id);
+                Assert.AreEqual(v2._id, v3._id);
             }
         }
 
@@ -172,7 +184,7 @@
             var vertex = client.Query(script);
 
             Assert.IsNotNull(vertex);
-            Assert.AreEqual(Resources.LongText, vertex.text);
+            Assert.AreEqual(Resources.LongText, (string)vertex.text);
         }
 
         [TestMethod]
@@ -188,7 +200,7 @@
             var vertex = client.Query(script, parameters);
 
             Assert.IsNotNull(vertex);
-            Assert.AreEqual(Resources.LongText, vertex.text);
+            Assert.AreEqual(Resources.LongText, (string)vertex.text);
         }
     }
 }

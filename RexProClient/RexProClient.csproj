@@ -38,8 +38,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="MsgPack, Version=0.3.0.0, Culture=neutral, PublicKeyToken=a2625990d5dc0167, processorArchitecture=MSIL">
-      <HintPath>..\packages\MsgPack.Cli.0.3.1\lib\net40-client\MsgPack.dll</HintPath>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.5.0.6\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -49,8 +49,8 @@
     <Compile Include="GraphItem.cs" />
     <Compile Include="Messages\DynamicScriptResponse.cs" />
     <Compile Include="Messages\GraphSettings.cs" />
+    <Compile Include="Messages\IRequestMetaData.cs" />
     <Compile Include="RexProClientSerializationException.cs" />
-    <Compile Include="Messages\Channel.cs" />
     <Compile Include="Messages\ErrorResponse.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="Messages\ErrorResponseMetaData.cs">
@@ -74,7 +74,6 @@
     <Compile Include="RexProSession.cs" />
     <Compile Include="StreamExtensions.cs" />
     <Compile Include="TypeExtensions.cs" />
-    <Compile Include="UnpackerExtensions.cs" />
     <Compile Include="Vertex.cs" />
   </ItemGroup>
   <ItemGroup>

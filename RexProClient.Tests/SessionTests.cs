@@ -2,9 +2,7 @@
 {
     using System.Collections.Generic;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     using Rexster.Messages;
-    using Rexster.Tests.Properties;
 
     [TestClass]
     public class SessionTests
@@ -14,7 +12,8 @@
         [TestInitialize]
         public void Initialize()
         {
-            client = new RexProClient(Settings.Default.RexProHost, Settings.Default.RexProPort);
+            client = TestClientFactory.CreateClient();
+            client.Query("g.V.remove();g.commit()");
         }
 
         [TestMethod]
@@ -43,7 +42,7 @@
         {
             using (var session = client.StartSession())
             {
-                var bindings = new Dictionary<string, object> { { "name", "foo" } };
+                var bindings = new { name = "foo" };
                 var request = new ScriptRequest("v = g.addVertex(['name':name])", bindings);
                 var expected = client.ExecuteScript<Vertex<TestVertex>>(request, session).Result;
                 var actual = client.Query<Vertex<TestVertex>>("v", session: session);

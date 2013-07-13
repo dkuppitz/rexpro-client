@@ -2,17 +2,15 @@ namespace Rexster.Messages
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-
-    using MsgPack.Serialization;
+    using Newtonsoft.Json.Linq;
 
     public class ScriptRequest : RexProMessage<ScriptRequestMetaData>
     {
-        private Dictionary<string, object> bindings;
+        private object bindings;
 
         public ScriptRequest()
         {
-            this.Request = Guid.NewGuid().ToByteArray();
+            this.Request = Guid.NewGuid();
             this.Meta = new ScriptRequestMetaData();
             this.Language = "groovy";
         }
@@ -21,38 +19,77 @@ namespace Rexster.Messages
         {
         }
 
-        public ScriptRequest(string script, Dictionary<string, object> bindings) : this()
+        public ScriptRequest(string script, object bindings) : this()
         {
             this.Script = script;
-            if (bindings != null)
-                bindings.ToList().ForEach(binding => this.AddBinding(binding.Key, binding.Value));
+            this.AddBindings(bindings);
         }
 
-        [MessagePackMember(3)]
         public string Language { get; set; }
-
-        [MessagePackMember(4)]
         public string Script { get; set; }
 
-        [MessagePackMember(5)]
-        public Dictionary<string, object> Bindings
+        public object Bindings
         {
             get { return this.bindings; }
             set { this.bindings = value; }
         }
 
+        private void AddBindings(object bindings)
+        {
+            if (bindings == null)
+                return;
+
+            var dict = bindings as IDictionary<string, object>;
+            if (dict != null)
+            {
+                foreach (var entry in dict)
+                {
+                    this.AddBinding(entry.Key, entry.Value);
+                }
+                return;
+            }
+
+            if (!bindings.GetType().IsPrimitive)
+            {
+                var jObject = JObject.FromObject(bindings);
+                foreach (var property in jObject.Properties())
+                {
+                    this.AddBinding(property.Name, property.Value);
+                }
+            }
+        }
+
         public ScriptRequest AddBinding(string name, object value)
         {
+            var bindingValue = GetBindingValue(value);
+
             if (this.bindings == null)
             {
                 this.bindings = new Dictionary<string, object>
                 {
-                    { name, GetBindingValue(value) }
+                    { name, bindingValue }
                 };
             }
             else
             {
-                this.bindings.Add(name, GetBindingValue(value));
+                var dict = this.bindings as IDictionary<string, object>;
+                if (dict != null)
+                {
+                    dict.Add(name, bindingValue);
+                }
+                else
+                {
+                    var jObject = this.bindings as JObject;
+                    if (jObject != null)
+                    {
+                        jObject.Add(name, JToken.FromObject(bindingValue));
+                    }
+                    else
+                    {
+                        throw new RexProClientException(string.Format("Cannot add binding to type '{0}'",
+                                                                      this.bindings.GetType().Name));
+                    }
+                }
             }
 
             return this;
@@ -60,7 +97,35 @@ namespace Rexster.Messages
 
         private static object GetBindingValue(object value)
         {
-            return (value is GraphItem) ? ((GraphItem) value).Id : value;
+            var item = value as GraphItem;
+            if (item != null)
+            {
+                return item.Id;
+            }
+
+            var jToken = value as JToken;
+            if (jToken != null && jToken.HasValues && jToken["_type"] != null && jToken["_id"] != null)
+            {
+                switch (jToken["_type"].ToObject<string>())
+                {
+                    case "vertex":
+                    case "edge":
+                        return jToken["_id"].ToObject<string>();
+                }
+            }
+
+            return value;
+        }
+
+        public override object[] ToSerializableArray()
+        {
+            var result = base.ToSerializableArray();
+            var size = result.Length;
+            Array.Resize(ref result, size + 3);
+            result[size++] = this.Language;
+            result[size++] = this.Script;
+            result[size] = this.bindings ?? new object();
+            return result;
         }
     }
 }

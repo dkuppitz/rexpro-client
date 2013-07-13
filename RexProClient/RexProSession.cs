@@ -5,11 +5,11 @@
     public sealed class RexProSession : IDisposable
     {
         private readonly RexProClient client;
-        private readonly byte[] session;
+        private readonly Guid session;
 
         internal event EventHandler Kill;
 
-        internal RexProSession(RexProClient client, byte[] session)
+        internal RexProSession(RexProClient client, Guid session)
         {
             this.client = client;
             this.session = session;
@@ -23,9 +23,9 @@
                 this.Kill(this, EventArgs.Empty);
         }
 
-        public static implicit operator byte[](RexProSession session)
+        public static implicit operator Guid(RexProSession session)
         {
-            return session != null ? session.session : null;
+            return session != null ? session.session : Guid.Empty;
         }
     }
 }

@@ -6,35 +6,38 @@
     using System.Globalization;
     using System.IO;
     using System.Net.Sockets;
-    using System.Reflection;
+    using System.Text;
     using System.Threading;
-
-    using MsgPack;
-    using MsgPack.Serialization;
-    
+    using Newtonsoft.Json;
     using Rexster.Messages;
 
     public class RexProClient
     {
-        private const byte ProtocolVersion = 0;
+        private const byte ProtocolVersion = 1;
+        private const byte SerializerType = 1;
+
         private const int DefaultPort = 8184;
+
+        private static readonly byte[] InitialBuffer = new byte[]
+        {
+            ProtocolVersion,
+            SerializerType,
+            0, 0, 0, 0 // Reserved Bytes
+        };
 
         private static readonly IDictionary<byte, byte> ExpectedResponseMessageType = new Dictionary<byte, byte>
         {
             { MessageType.SessionRequest, MessageType.SessionResponse },
-            { MessageType.ScriptRequest, MessageType.MsgPackScriptResponse }
+            { MessageType.ScriptRequest, MessageType.ScriptResponse }
         };
-
-        private static readonly MessagePackSerializer<ErrorResponse> ErrorMessageSerializer =
-            MessagePackSerializer.Create<ErrorResponse>();
 
         private static readonly ConcurrentDictionary<Guid, NetworkStream> SessionStreams =
             new ConcurrentDictionary<Guid, NetworkStream>();
 
-        private GraphSettings settings;
         private readonly string host;
         private readonly int port;
         private readonly Func<TcpClient> tcpClientProvider;
+        private GraphSettings settings;
 
         public RexProClient()
             : this("localhost", DefaultPort, GraphSettings.Default)
@@ -58,12 +61,7 @@
             this.port = port;
         }
 
-        private static Func<TcpClient> CreateDefaultTcpProvider(string host, int port)
-        {
-            return () => new TcpClient(host, port);
-        }
-
-        public RexProClient(Func<TcpClient> tcpClientProvider) 
+        public RexProClient(Func<TcpClient> tcpClientProvider)
             : this(tcpClientProvider, GraphSettings.Default)
         {
         }
@@ -105,13 +103,20 @@
             set { this.settings = value ?? GraphSettings.Default; }
         }
 
-        public dynamic Query(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool transaction = true)
+        private static Func<TcpClient> CreateDefaultTcpProvider(string host, int port)
+        {
+            return () => new TcpClient(host, port);
+        }
+
+        public dynamic Query(string script, Dictionary<string, object> bindings = null, RexProSession session = null,
+                             bool transaction = true)
         {
             var request = new ScriptRequest(script, bindings);
             return this.ExecuteScript<object>(request, session, transaction).Result;
         }
 
-        public T Query<T>(string script, Dictionary<string, object> bindings = null, RexProSession session = null, bool transaction = true)
+        public T Query<T>(string script, Dictionary<string, object> bindings = null, RexProSession session = null,
+                          bool transaction = true)
         {
             var request = new ScriptRequest(script, bindings);
             return this.ExecuteScript<T>(request, session, transaction).Result;
@@ -122,7 +127,8 @@
             return this.ExecuteScript<object>(script, session, transaction);
         }
 
-        public ScriptResponse<T> ExecuteScript<T>(ScriptRequest script, RexProSession session = null, bool transaction = true)
+        public ScriptResponse<T> ExecuteScript<T>(ScriptRequest script, RexProSession session = null,
+                                                  bool transaction = true)
         {
             script.Meta.InSession = session != null;
             script.Meta.Isolate = session == null;
@@ -137,151 +143,164 @@
                     script.Meta.GraphObjectName = this.settings.GraphObjectName;
             }
 
-            return this.SendRequest<ScriptRequest, ScriptResponse<T>>(script, MessageType.ScriptRequest);
+            return this.SendRequest<ScriptRequest, ScriptResponse<T>>(script);
         }
 
-        private TResponse SendRequest<TRequest, TResponse>(TRequest message, byte requestMessageType)
+        private TResponse SendRequest<TRequest, TResponse>(TRequest message)
             where TRequest : RexProMessage
+            where TResponse : RexProMessage
+        {
+            byte requestMessageType;
+            int messageLength;
+            var messageBytes = BuildRequestMessageBuffer(message, out requestMessageType,
+                                                         out messageLength);
+
+            var netStream = message.Session != Guid.Empty
+                                ? SessionStreams.GetOrAdd(message.Session, _ => this.tcpClientProvider().GetStream())
+                                : this.tcpClientProvider().GetStream();
+
+            try
+            {
+                netStream.Write(messageBytes, 0, messageLength);
+                return ParseResponse<TResponse>(netStream, requestMessageType);
+            }
+            finally
+            {
+                if (message.Session == Guid.Empty)
+                {
+                    netStream.Close();
+                    netStream.Dispose();
+                }
+            }
+        }
+
+        private static byte[] BuildRequestMessageBuffer<TRequest>(TRequest message,
+                                                                  out byte requestMessageType,
+                                                                  out int messageLength)
+            where TRequest : RexProMessage
+        {
+            int offset;
+            var json = JsonConvert.SerializeObject(message.ToSerializableArray());
+            var jsonBytes = Encoding.UTF8.GetBytes(json);
+            var jsonLength = jsonBytes.Length;
+            var messageBytes = new byte[(offset = InitialBuffer.Length) + jsonBytes.Length + 5];
+
+            Array.Copy(InitialBuffer, messageBytes, offset);
+
+            if (message is SessionRequest)
+            {
+                messageBytes[offset++] = requestMessageType = 1;
+            }
+            else if (message is ScriptRequest)
+            {
+                messageBytes[offset++] = requestMessageType = 3;
+            }
+            else
+            {
+                throw new RexProClientException(string.Format("Unsupported message type: {0}",
+                                                              message.GetType().Name));
+            }
+
+            messageBytes[offset++] = (byte)((jsonLength >> 24) & 255);
+            messageBytes[offset++] = (byte)((jsonLength >> 16) & 255);
+            messageBytes[offset++] = (byte)((jsonLength >> 8) & 255);
+            messageBytes[offset++] = (byte)(jsonLength & 255);
+
+            Array.Copy(jsonBytes, 0, messageBytes, offset, jsonLength);
+
+            messageLength = offset + jsonLength;
+
+            return messageBytes;
+        }
+
+        private static TResponse ParseResponse<TResponse>(NetworkStream netStream, byte requestMessageType)
             where TResponse : RexProMessage
         {
             TResponse result;
 
-            NetworkStream netStream;
+            const int headerLength = 11;
+            var headerBytes = new byte[headerLength];
+            var bytesRead = 0;
 
-            if (message.Session != null)
+            while (bytesRead != headerLength)
             {
-                var guid = new Guid(message.Session);
-                netStream = SessionStreams.GetOrAdd(guid, _ => tcpClientProvider().GetStream());
-            }
-            else
-            {
-                netStream = tcpClientProvider().GetStream();
+                var bytes = netStream.Read(headerBytes, bytesRead, headerLength - bytesRead);
+                bytesRead += bytes;
             }
 
-            using (var packer = Packer.Create(netStream, false))
+            var expectedResponseMessageType = ExpectedResponseMessageType[requestMessageType];
+
+            if ((headerBytes[0] != ProtocolVersion) ||
+                (headerBytes[1] != 1) ||
+                (headerBytes[6] | expectedResponseMessageType) != expectedResponseMessageType)
             {
-                packer.Pack(ProtocolVersion).Pack(requestMessageType);
+                throw new RexProClientSerializationException("Unexpected message header.");
+            }
 
-                PackMessage(netStream, message);
+            var messageLength = (headerBytes[7] << 24) |
+                                (headerBytes[8] << 16) |
+                                (headerBytes[9] << 8) |
+                                (headerBytes[10]);
 
-                using (var unpacker = Unpacker.Create(netStream, false))
+            const int bufferSize = 4096;
+            var buffer = new byte[bufferSize];
+            bytesRead = 0;
+
+            using (var stream = new MemoryStream())
+            {
+                while (bytesRead < messageLength)
                 {
-                    byte protocolVersion, responseMessageType;
-
-                    if (
-                        !(unpacker.ReadByte(out protocolVersion) && protocolVersion == 0 &&
-                          unpacker.ReadByte(out responseMessageType)))
+                    var bytes = netStream.Read(buffer, 0, bufferSize);
+                    if (bytes > 0)
                     {
-                        throw new RexProClientSerializationException("Unexpected message header.");
-                    }
-
-                    // skip message length bytes
-                    // don't use unpacker as it throws an exception for some lengths (don't know why)
-                    //
-                    // Thanks to Ozcan Degirmenci for pointing out that reading the stream without taking the
-                    // message length header into account can/will probably fail.
-                    const int bufferSize = 4096;
-                    var buffer = new byte[bufferSize];
-                    var bytesRead = 0;
-                    var messageLength =
-                        (netStream.ReadByte() << 24) |
-                        (netStream.ReadByte() << 16) |
-                        (netStream.ReadByte() << 8) |
-                        (netStream.ReadByte());
-
-                    using (var stream = new MemoryStream())
-                    {
-                        while (bytesRead < messageLength)
-                        {
-                            var bytes = netStream.Read(buffer, 0, bufferSize);
-                            if (bytes > 0)
-                            {
-                                stream.Write(buffer, 0, bytes);
-                                bytesRead += bytes;
-                            }
-                            Thread.SpinWait(10);
-                        }
-
-                        stream.Seek(0, SeekOrigin.Begin);
-
-                        if (responseMessageType == MessageType.Error)
-                        {
-                            var error = ErrorMessageSerializer.Unpack(stream);
-                            throw new RexProClientException(error);
-                        }
-
-                        var expectedResponseMessageType = ExpectedResponseMessageType[requestMessageType];
-                        if (responseMessageType != expectedResponseMessageType)
-                        {
-                            var msg = string.Format(CultureInfo.InvariantCulture,
-                                                    "Unexpected message type '{0}', expected '{1}'.",
-                                                    requestMessageType, expectedResponseMessageType);
-                            throw new RexProClientSerializationException(msg);
-                        }
-
-                        var responseType = typeof (TResponse);
-                        if (responseType.IsDynamicScriptResponse())
-                        {
-                            PropertyInfo pi;
-
-                            var tmp = MessagePackSerializer.Create<DynamicScriptResponse>().Unpack(stream);
-
-                            result = Activator.CreateInstance<TResponse>();
-                            result.Request = tmp.Request;
-                            result.Session = tmp.Session;
-
-                            if (null != (pi = responseType.GetProperty("Meta")))
-                                pi.GetSetMethod().Invoke(result, new object[] { tmp.Meta });
-                            if (null != (pi = responseType.GetProperty("Result")))
-                                pi.GetSetMethod().Invoke(result, new[] { tmp.Result });
-                            if (null != (pi = responseType.GetProperty("Bindings")))
-                                pi.GetSetMethod().Invoke(result, new object[] { tmp.Bindings });
-                        }
-                        else
-                        {
-                            result = MessagePackSerializer.Create<TResponse>().Unpack(stream);
-                        }
+                        stream.Write(buffer, 0, bytes);
+                        bytesRead += bytes;
                     }
                 }
-            }
 
-            if (message.Session == null)
-            {
-                netStream.Close();
-                netStream.Dispose();
+                var json = Encoding.UTF8.GetString(stream.ToArray());
+
+                if (headerBytes[6] == MessageType.Error)
+                {
+                    var error = new ErrorResponse();
+                    error.LoadJson(json);
+                    throw new RexProClientException(error);
+                }
+
+                if (headerBytes[6] != expectedResponseMessageType)
+                {
+                    var msg = string.Format(CultureInfo.InvariantCulture,
+                                            "Unexpected message type '{0}', expected '{1}'.",
+                                            headerBytes[6], expectedResponseMessageType);
+                    throw new RexProClientSerializationException(msg);
+                }
+
+                switch (headerBytes[6])
+                {
+                    case MessageType.SessionResponse:
+                        result = Activator.CreateInstance<TResponse>();
+                        result.LoadJson(json);
+                        break;
+
+                        //case MessageType.ScriptResponse:
+                    default:
+                        result = Activator.CreateInstance<TResponse>();
+                        result.LoadJson(json);
+                        break;
+                }
             }
 
             return result;
         }
 
-        private static void PackMessage<T>(Stream stream, T message)
-            where T : RexProMessage
-        {
-            byte[] messageBytes;
-
-            using (var messageStream = new MemoryStream())
-            using (var messagePacker = Packer.Create(messageStream))
-            {
-                messagePacker.Pack(message);
-                messageBytes = messageStream.ToArray();
-            }
-
-            var length = messageBytes.Length;
-            stream.WriteByte((byte) ((length >> 24) & 0xFF));
-            stream.WriteByte((byte) ((length >> 16) & 0xFF));
-            stream.WriteByte((byte) ((length >> 8) & 0xFF));
-            stream.WriteByte((byte) (length & 0xFF));
-            stream.Write(messageBytes, 0, length);
-        }
-
         public RexProSession StartSession()
         {
             var request = new SessionRequest(this.settings);
-            var response = this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
+            var response = this.SendRequest<SessionRequest, SessionResponse>(request);
             var session = new RexProSession(this, response.Session);
-            var sessionGuid = new Guid(response.Session);
+            var sessionGuid = response.Session;
 
-            SessionStreams.GetOrAdd(sessionGuid, _ => tcpClientProvider().GetStream());
+            SessionStreams.GetOrAdd(sessionGuid, _ => this.tcpClientProvider().GetStream());
             session.Kill += (sender, args) =>
             {
                 while (SessionStreams.ContainsKey(sessionGuid))
@@ -302,7 +321,7 @@
         public void KillSession(RexProSession session)
         {
             var request = new SessionRequest(this.settings, session, true);
-            this.SendRequest<SessionRequest, SessionResponse>(request, MessageType.SessionRequest);
+            this.SendRequest<SessionRequest, SessionResponse>(request);
         }
     }
 }

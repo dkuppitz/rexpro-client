@@ -24,20 +24,10 @@
         /// Used for requests to process a Gremlin script on the RexPro Server.
         /// </summary>
         public const byte ScriptRequest = 3;
-        
-        /// <summary>
-        /// Used for responses to a script request (Console serialization channel).
-        /// </summary>
-        public const byte ConsoleScriptResponse = 4;
 
         /// <summary>
-        /// Used for responses to a script request (MsgPack serialization channel).
+        /// Used for responses to a script request.
         /// </summary>
-        public const byte MsgPackScriptResponse = 5;
-
-        /// <summary>
-        /// Used for responses to a script request (GraphSON serialization channel).
-        /// </summary>
-        public const byte GraphsonScriptResponse = 6;
+        public const byte ScriptResponse = 5;
     }
 }

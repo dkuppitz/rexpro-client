@@ -1,8 +1,6 @@
 namespace Rexster.Messages
 {
-    using MsgPack;
-
-    public class ScriptRequestMetaData : IPackable
+    public class ScriptRequestMetaData : IRequestMetaData
     {
         private bool inSession;
         private bool isolate;
@@ -14,8 +12,6 @@ namespace Rexster.Messages
         {
             this.isolate = true;
             this.transaction = true;
-            this.graphName = "graph";
-            this.graphObjName = "g";
         }
 
         public bool InSession
@@ -48,25 +44,26 @@ namespace Rexster.Messages
             set { this.graphObjName = value; }
         }
 
-        public void PackToMessage(Packer packer, PackingOptions options)
+        public object ToSerializableObject()
         {
-            packer.PackMapHeader(this.inSession ? 4 : 6)
-                  .PackString("channel")
-                  .Pack(Channel.MsgPack)
-                  .PackString("inSession")
-                  .Pack(this.inSession)
-                  .PackString("isolate")
-                  .Pack(this.isolate)
-                  .PackString("transaction")
-                  .Pack(this.transaction);
-
-            if (!this.inSession)
+            if (this.inSession)
             {
-                packer.PackString("graphName")
-                      .PackString(this.graphName)
-                      .PackString("graphObjName")
-                      .PackString(this.graphObjName);
+                return new
+                {
+                    this.inSession,
+                    this.isolate,
+                    this.transaction
+                };
             }
+
+            return new
+            {
+                this.inSession,
+                this.isolate,
+                this.transaction,
+                this.graphName,
+                this.graphObjName
+            };
         }
     }
 }

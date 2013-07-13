@@ -1,19 +1,45 @@
 ﻿namespace Rexster.Messages
 {
-    using MsgPack.Serialization;
+    using System;
 
     public abstract class RexProMessage
     {
-        [MessagePackMember(0)]
-        public byte[] Session { get; set; }
+        public Guid Session { get; set; }
+        public Guid Request { get; set; }
 
-        [MessagePackMember(1)]
-        public byte[] Request { get; set; }
+        public virtual object[] ToSerializableArray()
+        {
+            return new object[]
+            {
+                Session,
+                Request
+            };
+        }
+
+        public virtual void LoadJson(string json)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public abstract class RexProMessage<TMetaData> : RexProMessage
     {
-        [MessagePackMember(2)]
         public TMetaData Meta { get; set; }
+
+        public override object[] ToSerializableArray()
+        {
+            var result = base.ToSerializableArray();
+            var size = result.Length;
+            Array.Resize(ref result, size + 1);
+            if (this.Meta is IRequestMetaData)
+            {
+                result[size] = ((IRequestMetaData)Meta).ToSerializableObject();
+            }
+            else
+            {
+                result[size] = this.Meta;
+            }
+            return result;
+        }
     }
 }

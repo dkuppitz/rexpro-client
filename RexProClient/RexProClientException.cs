@@ -24,8 +24,8 @@
         protected RexProClientException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            this.Session = (byte[]) info.GetValue("Session", typeof (byte[]));
-            this.Request = (byte[]) info.GetValue("Request", typeof (byte[]));
+            this.Session = (Guid) info.GetValue("Session", typeof (Guid));
+            this.Request = (Guid) info.GetValue("Request", typeof (Guid));
         }
 
         public RexProClientException(ErrorResponse response)
@@ -35,8 +35,8 @@
             this.Request = response.Request;
         }
 
-        public byte[] Session { get; private set; }
-        public byte[] Request { get; private set; }
+        public Guid Session { get; private set; }
+        public Guid Request { get; private set; }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {

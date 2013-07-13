@@ -48,7 +48,7 @@ var result = client.Query<long>("g.V.count()");
 
 ```C#
 // not really different from scalar return values
-var bindings = new Dictionary<string, object> {{ "name", "foo" }};
+var bindings = new { "name", "foo" };
 var result = client.Query<Vertex<Example>>("g.addVertex(['name':name])", bindings);
 ```
 
@@ -92,6 +92,17 @@ using (var session = client.StartSession())
         { "v2", v2 },
         { "label", "knows" }
     };
+
+    client.Query("g.addEdge(g.v(v1), g.v(v2), label)", bindings, session);
+```
+
+The previous example can also use an anonymous object instead of an dictionary.
+
+using (var session = client.StartSession())
+{
+    var v1 = client.Query("g.addVertex()", session: session);
+    var v2 = client.Query("g.addVertex()", session: session);
+    var bindings = new { v1, v2, label = "knows" };
 
     client.Query("g.addEdge(g.v(v1), g.v(v2), label)", bindings, session);
 ```
