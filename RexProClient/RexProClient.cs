@@ -275,19 +275,8 @@
                     throw new RexProClientSerializationException(msg);
                 }
 
-                switch (headerBytes[6])
-                {
-                    case MessageType.SessionResponse:
-                        result = Activator.CreateInstance<TResponse>();
-                        result.LoadJson(json);
-                        break;
-
-                        //case MessageType.ScriptResponse:
-                    default:
-                        result = Activator.CreateInstance<TResponse>();
-                        result.LoadJson(json);
-                        break;
-                }
+                result = Activator.CreateInstance<TResponse>();
+                result.LoadJson(json);
             }
 
             return result;
